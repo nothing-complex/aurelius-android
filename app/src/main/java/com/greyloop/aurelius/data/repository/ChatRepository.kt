@@ -54,8 +54,8 @@ class ChatRepository(
 
     protected open fun getApiUrl(): String {
         return when (secureStorage.region) {
-            SecureStorage.REGION_CHINA -> "https://api.minimax.chat/v1/text/chatcompletion_v2"
-            else -> "https://api.minimax.io/v1/text/chatcompletion_v2"
+            SecureStorage.REGION_CHINA -> "https://api.minimax.chat/v1/chat/completions"
+            else -> "https://api.minimax.io/v1/chat/completions"
         }
     }
 
@@ -125,7 +125,7 @@ class ChatRepository(
 
         return try {
             val summaryRequest = ChatCompletionRequest(
-                model = "abab6.5-chat",
+                model = "MiniMax-M2.7",
                 messages = listOf(
                     ApiMessage(
                         role = "system",
@@ -279,7 +279,7 @@ class ChatRepository(
         toolDefinitions: List<ToolDefinition>
     ): ChatCompletionResponse {
         val request = ChatCompletionRequest(
-            model = "abab6.5-chat",
+            model = "MiniMax-M2.7",
             messages = messages,
             tools = toolDefinitions,
             stream = false
