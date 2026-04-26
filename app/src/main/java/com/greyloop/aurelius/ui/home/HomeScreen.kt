@@ -1,5 +1,7 @@
 package com.greyloop.aurelius.ui.home
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,26 +37,36 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.greyloop.aurelius.domain.model.Chat
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+// Dynamic header constants
+private val EXPANDED_HEIGHT = 56.dp
+private val COLLAPSED_HEIGHT = 40.dp
+private val EXPANDED_FONT = 22.sp
+private val COLLAPSED_FONT = 16.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,39 +77,31 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val isScrollingDown = remember { mutableFloatStateOf(0f) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Aurelius") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+    // Track scroll direction for dynamic header
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        val currentScrollOffset = listState.firstVisibleItemScrollOffset
+        isScrollingDown.floatValue = if (currentScrollOffset > 50) 1f else 0f
+    }
+    val headerAlpha by animateFloatAsState(
+        targetValue = if (isScrollingDown.floatValue > 0.5f) 0.6f else 1f,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 200f),
+        label = "headerAlpha"
+    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main content with scroll-aware padding
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Dynamic header space - header floats above content
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (isScrollingDown.floatValue > 0.5f) COLLAPSED_HEIGHT else EXPANDED_HEIGHT)
+                    .alpha(headerAlpha)
             )
-        },
-        floatingActionButton = {
-            // Hide FAB when showing empty state (redundant with center button)
-            if (uiState.chats.isNotEmpty() || uiState.isLoading) {
-                FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            val newChat = viewModel.createNewChat()
-                            onNewChat(newChat.id)
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "New chat")
-                }
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+
             // Search bar - only show when there are chats to search
             if (uiState.chats.isNotEmpty()) {
                 OutlinedTextField(
@@ -174,6 +179,7 @@ fun HomeScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -185,6 +191,51 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // Floating dynamic header - overlay on top of content
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (isScrollingDown.floatValue > 0.5f) COLLAPSED_HEIGHT else EXPANDED_HEIGHT)
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp)
+                .alpha(headerAlpha),
+            shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
+            shadowElevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Aurelius",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontSize = if (isScrollingDown.floatValue > 0.5f) COLLAPSED_FONT else EXPANDED_FONT
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+
+        // FAB
+        if (uiState.chats.isNotEmpty() || uiState.isLoading) {
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        val newChat = viewModel.createNewChat()
+                        onNewChat(newChat.id)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "New chat")
             }
         }
     }

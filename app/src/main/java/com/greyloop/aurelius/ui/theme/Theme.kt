@@ -4,59 +4,66 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import kotlin.random.Random
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
-// Aurelius Stoic Palette — earthy, refined, authoritative
-// Primary: Deep amber/ochre — wisdom, timelessness
-// Secondary: Warm stone — stability, grounding
-// Tertiary: Deep forest green — depth, calm authority
+// Aurelius Earthy Palette — warm terracotta, parchment, organic
+// Primary: Terracotta amber #C4A484 — warmth, earthiness
+// Secondary: Warm stone #A69080 — grounding
+// Tertiary: Deep sage #4A6358 — calm authority
+// Background: Warm cream #FAF8F5 (light), Charcoal #1C1A18 (dark)
+// Surface: Parchment #F5F0E8 (light), Deep charcoal #252320 (dark)
 
-private val StoicAmber = Color(0xFFC77B2B)           // Primary — warm ochre
-private val StoicAmberLight = Color(0xFFE8A654)      // Primary light
-private val StoicStone = Color(0xFF8B7355)           // Secondary — warm stone
-private val StoicForest = Color(0xFF2D4739)          // Tertiary — deep forest
-private val StoicParchment = Color(0xFFF5F0E8)       // Surface light
-private val StoicCharcoal = Color(0xFF1A1A1A)       // Background dark
+private val Terracotta = Color(0xFFC4A484)           // Primary — warm terracotta
+private val TerracottaLight = Color(0xFFD9BCA8)      // Primary light
+private val TerracottaDark = Color(0xFF9A7B5C)      // Primary dark
+private val WarmStone = Color(0xFFA69080)           // Secondary — warm stone
+private val DeepSage = Color(0xFF4A6358)             // Tertiary — deep sage
+private val WarmCream = Color(0xFFFAF8F5)           // Background light
+private val Parchment = Color(0xFFF5F0E8)           // Surface light
+private val DeepCharcoal = Color(0xFF1C1A18)       // Background dark
+private val DarkSurface = Color(0xFF252320)        // Surface dark
 
-private val StoicDarkColorScheme = darkColorScheme(
-    primary = StoicAmberLight,
-    secondary = StoicStone,
-    tertiary = Color(0xFF4A7C59),                    // Muted forest
-    background = StoicCharcoal,
-    surface = Color(0xFF242424),
-    surfaceVariant = Color(0xFF2E2E2E),
-    onPrimary = Color(0xFF1A1A1A),
+private val EarthyDarkColorScheme = darkColorScheme(
+    primary = TerracottaLight,
+    secondary = WarmStone,
+    tertiary = DeepSage,
+    background = DeepCharcoal,
+    surface = DarkSurface,
+    surfaceVariant = Color(0xFF2E2B28),
+    onPrimary = Color(0xFF1C1A18),
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Color(0xFFE8E0D5),
     onSurface = Color(0xFFE8E0D5),
     onSurfaceVariant = Color(0xFFB0A89E),
     primaryContainer = Color(0xFF3D2E1C),
-    onPrimaryContainer = Color(0xFFE8C89A),
-    tertiaryContainer = Color(0xFF1E3328),
+    onPrimaryContainer = Color(0xFFD9BCA8),
+    secondaryContainer = Color(0xFF3D3530),
+    onSecondaryContainer = Color(0xFFD4C4B8),
+    tertiaryContainer = Color(0xFF2A3830),
     onTertiaryContainer = Color(0xFF9DCFAF)
 )
 
-private val StoicLightColorScheme = lightColorScheme(
-    primary = StoicAmber,
-    secondary = StoicStone,
-    tertiary = Color(0xFF3D5A4A),                    // Deep sage
-    background = StoicParchment,
-    surface = Color(0xFFFFFBF5),
-    surfaceVariant = Color(0xFFF0EBE0),
+private val EarthyLightColorScheme = lightColorScheme(
+    primary = Terracotta,
+    secondary = WarmStone,
+    tertiary = DeepSage,
+    background = WarmCream,
+    surface = Parchment,
+    surfaceVariant = Color(0xFFEDE6DC),
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
@@ -65,28 +72,14 @@ private val StoicLightColorScheme = lightColorScheme(
     onSurfaceVariant = Color(0xFF5C5347),
     primaryContainer = Color(0xFFFFE8C2),
     onPrimaryContainer = Color(0xFF3D2E1C),
+    secondaryContainer = Color(0xFFF0E6DA),
+    onSecondaryContainer = Color(0xFF3D3530),
     tertiaryContainer = Color(0xFFD4E8D8),
     onTertiaryContainer = Color(0xFF1E3328)
 )
 
-// Typography scale — weighted hierarchy for authority and readability
-private val AureliusTypography = Typography(
-    displayLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
-    displayMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold, fontSize = 45.sp, lineHeight = 52.sp),
-    displaySmall = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 44.sp),
-    headlineLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp),
-    headlineMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp),
-    headlineSmall = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
-    titleLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.15.sp),
-    titleSmall = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp),
-    bodyLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.5.sp),
-    bodyMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.25.sp),
-    bodySmall = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.4.sp),
-    labelLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp),
-    labelMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp),
-    labelSmall = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp)
-)
+// Typography is defined in Type.kt — Serif (Libre Baskerville) for display/headlines,
+// Sans-serif (Source Sans 3) for body/labels. Using AureliusTypography from Type.kt.
 
 @Composable
 fun AureliusTheme(
@@ -95,7 +88,7 @@ fun AureliusTheme(
     content: @Composable () -> Unit
 ) {
     // Use stoic palette (not dynamic colors) for brand consistency
-    val finalColorScheme = if (darkTheme) StoicDarkColorScheme else StoicLightColorScheme
+    val finalColorScheme = if (darkTheme) EarthyDarkColorScheme else EarthyLightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -117,5 +110,37 @@ fun darkThemeFromMode(themeMode: String): Boolean? {
         "light" -> false
         "dark" -> true
         else -> null // system default
+    }
+}
+
+/**
+ * Subtle noise/grain texture overlay for organic paper-like feel.
+ * Applies sparse dots at 1-5% opacity for texture without visible pattern.
+ */
+private fun Modifier.surfaceGrain(): Modifier = this.drawBehind {
+    val random = Random(42) // deterministic seed for consistent grain
+    val density = (size.width * size.height / 2000).toInt()
+    for (i in 0 until density) {
+        val x = random.nextFloat() * size.width
+        val y = random.nextFloat() * size.height
+        val alpha = random.nextFloat() * 0.04f + 0.01f
+        drawCircle(
+            color = Color.White.copy(alpha = alpha),
+            radius = random.nextFloat() * 1.5f + 0.5f,
+            center = Offset(x, y)
+        )
+    }
+}
+
+@Composable
+fun AureliusSurface(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.surfaceGrain(),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        content()
     }
 }

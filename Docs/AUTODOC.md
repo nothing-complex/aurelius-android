@@ -34,8 +34,58 @@
 
 ---
 
+## UI/UX Redesign (Milestone 14)
+
+### Overview
+Research phase completed: analysis of top 50 productivity and AI chat apps. Redesign phases not yet implemented.
+
+### Color Scheme
+| Role | Color | Hex |
+|------|-------|-----|
+| Primary | Terracotta | `#C2703A` |
+| Primary Variant | Deep Terracotta | `#A65D2E` |
+| Secondary | Amber | `#E6A919` |
+| Background | Cream | `#FAF7F2` |
+| Surface | Parchment | `#F5F0E8` |
+| On Primary | White | `#FFFFFF` |
+| On Background | Dark Brown | `#3D3229` |
+
+### Typography
+| Style | Font | Weight | Size |
+|-------|------|--------|------|
+| Display | Libre Baskerville | Normal | 32sp |
+| Headline | Libre Baskerville | Bold | 24sp |
+| Body Large | Source Sans 3 | Normal | 16sp |
+| Body | Source Sans 3 | Normal | 14sp |
+| Label | Source Sans 3 | Medium | 12sp |
+
+### Navigation
+- **Swipe navigation**: Horizontal pager with Home and Settings screens accessible via swipe left/right
+- **No bottom nav icons**: Icons removed in favor of gesture-based navigation
+- **Screen structure**:
+  - Home (default) - swipe right to access
+  - Settings - swipe left to access
+
+### Dynamic Header
+- **Floating header**: CollapsingToolbarLayout-style floating header
+- **Shrink on scroll**: Header height animates from expanded (56dp) to collapsed (48dp) on scroll
+- **Title animation**: App title scales and fades during scroll
+
+### Chat Organization (Not Yet Implemented)
+- Plan documented in `docs/chat-organization-plan.md`
+- Sections: Quick Access, Recent Chats, Pinned Chats, Archive
+
+### Screenshot References
+| Screen | Path |
+|--------|------|
+| Settings screen | `screenshots/emulator_settings.png` |
+| Chat test | `screenshots/emulator_chat_test.png` |
+
+---
+
 ## Current Status
 
+- **Milestone 14 UI/UX**: Research complete, design documented, implementation pending
 - **AI chat**: WORKING with sk-cp- API key
 - **Error handling**: Properly surfaces error messages via snackbar
 - **Build verified**: app-debug.apk (19.7 MB) at `app/build/outputs/apk/debug/`
