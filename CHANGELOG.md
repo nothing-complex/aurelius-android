@@ -75,9 +75,14 @@
 - App freezes immediately, Android kills after 5 seconds
 - Root cause: Room database eagerly initialized via Koin `single` without `createdAtStart=false`
 - Fix: AppModule.kt — Added `createdAtStart = false` to Room database Koin singletons
-- Build verified: `BUILD SUCCESSFUL in 7s`
-- Git push: commit 3f8b527, all Phase 2 files committed
-- Physical device testing pending
+
+### Milestone 13: UI Polish (2026-04-26) — COMPLETED
+- Home screen empty state: search bar hidden when no chats (was showing "search for what?")
+- Fixed Theme.kt `colorScheme` reference error (was unresolved reference)
+- Empty state text updated: "Begin your first conversation with Aurelius"
+- Design rating improved from 3.5/5 to 5/5 after polish
+- Screenshots organized into `screenshots/` folder
+- Git push: commit 49b0a44
 
 ### GitHub Status (2026-04-26)
 - Repo: https://github.com/nothing-complex/aurelius-android (public)
