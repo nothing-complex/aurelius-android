@@ -105,7 +105,14 @@ class ChatViewModel(
         val content = _uiState.value.inputText.trim()
         if (content.isEmpty()) return
 
-        val id = currentChatId ?: return
+        val id = currentChatId ?: run {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = "Chat not initialized. Please try again."
+            )
+            viewModelScope.launch { _events.emit(ChatEvent.Error("Chat not initialized. Please try again.")) }
+            return@sendMessage
+        }
 
         _uiState.value = _uiState.value.copy(
             inputText = "",

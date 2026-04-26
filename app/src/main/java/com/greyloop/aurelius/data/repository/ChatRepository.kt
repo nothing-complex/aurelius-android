@@ -281,6 +281,17 @@ class ChatRepository(
                 )
             }
 
+            // Validate at least one API key is available before making network call
+            val hasCodingPlanKey = secureStorage.codingPlanKey.isNotEmpty()
+            val hasMiniMaxKey = secureStorage.minimaxApiKey.isNotEmpty()
+            if (!hasCodingPlanKey && !hasMiniMaxKey) {
+                val errorMsg = "No API key available. Please add your MiniMax API key in Settings, " +
+                    "or use a coding plan key (sk-cp-) for Anthropic API."
+                Log.e(TAG, errorMsg)
+                onError(errorMsg)
+                return@withContext
+            }
+
             // Execute chat completion
             val response = executeChatCompletion(
                 messages = apiMessages,
@@ -340,6 +351,15 @@ class ChatRepository(
             return executeAnthropicChatCompletion(messages)
         }
 
+        // Validate minimaxApiKey is available before making network call
+        val apiKey = secureStorage.minimaxApiKey
+        if (apiKey.isEmpty()) {
+            throw IllegalStateException(
+                "No API key available. Please add your MiniMax API key in Settings, " +
+                "or use a coding plan key (sk-cp-) for Anthropic API."
+            )
+        }
+
         val request = ChatCompletionRequest(
             model = "MiniMax-M2.7",
             messages = messages,
@@ -352,7 +372,6 @@ class ChatRepository(
             request
         ).toRequestBody("application/json".toMediaType())
 
-        val apiKey = secureStorage.minimaxApiKey
         val requestBuilder = Request.Builder()
             .url(getApiUrl())
             .addHeader("Authorization", "Bearer $apiKey")
@@ -366,6 +385,10 @@ class ChatRepository(
                     throw Exception("HTTP ${response.code}: $errorBody")
                 }
                 val body = response.body?.string() ?: "{}"
+                // Check for error JSON before treating as success (Anthropic errors have "error" field)
+                if (body.contains("\"error\"")) {
+                    throw Exception("API Error: $body")
+                }
                 json.decodeFromString(body)
             }
         }
@@ -413,6 +436,10 @@ class ChatRepository(
                     throw Exception("HTTP ${response.code}: $errorBody")
                 }
                 val body = response.body?.string() ?: "{}"
+                // Check for error JSON before treating as success (Anthropic errors have "error" field)
+                if (body.contains("\"error\"")) {
+                    throw Exception("API Error: $body")
+                }
                 val anthropicResp = json.decodeFromString<AnthropicResponse>(body)
 
                 // Convert Anthropic response back to OpenAI ChatCompletionResponse format
