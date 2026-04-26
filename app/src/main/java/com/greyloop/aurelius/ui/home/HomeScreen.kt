@@ -59,7 +59,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onChatClick: (String) -> Unit,
-    onNewChat: () -> Unit,
+    onNewChat: (String) -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -79,8 +79,8 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = {
                     scope.launch {
-                        viewModel.createNewChat()
-                        onNewChat()
+                        val newChat = viewModel.createNewChat()
+                        onNewChat(newChat.id)
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.primary
@@ -152,8 +152,8 @@ fun HomeScreen(
                         Button(
                             onClick = {
                                 scope.launch {
-                                    viewModel.createNewChat()
-                                    onNewChat()
+                                    val newChat = viewModel.createNewChat()
+                                    onNewChat(newChat.id)
                                 }
                             }
                         ) {

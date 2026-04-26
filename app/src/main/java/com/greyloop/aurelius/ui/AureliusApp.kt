@@ -83,8 +83,8 @@ fun AureliusApp(
                         onChatClick = { chatId ->
                             navController.navigate("chat/$chatId")
                         },
-                        onNewChat = {
-                            navController.navigate("chat/new")
+                        onNewChat = { chatId ->
+                            navController.navigate("chat/$chatId")
                         }
                     )
                 }

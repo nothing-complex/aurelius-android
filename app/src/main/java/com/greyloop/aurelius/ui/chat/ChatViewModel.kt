@@ -62,9 +62,11 @@ class ChatViewModel(
 
     init {
         if (chatId != null) {
+            currentChatId = chatId
             loadChat(chatId)
             observeMessages(chatId)
         }
+        // For new chats, currentChatId will be set when first message is sent via sendMessage()
     }
 
     private fun loadChat(id: String) {
@@ -84,6 +86,14 @@ class ChatViewModel(
                 .collect { messages ->
                     _uiState.value = _uiState.value.copy(messages = messages)
                 }
+        }
+    }
+
+    fun onChatIdAvailable(chatId: String) {
+        if (currentChatId == null) {
+            currentChatId = chatId
+            loadChat(chatId)
+            observeMessages(chatId)
         }
     }
 

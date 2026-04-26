@@ -269,7 +269,8 @@ class ChatRepository(
 
         } catch (e: Exception) {
             Log.e(TAG, "sendMessage error", e)
-            onError(e.message ?: "Failed to send message")
+            val userMessage = getUserFriendlyError(e)
+            onError(userMessage)
         }
     }
 
@@ -458,6 +459,24 @@ class ChatRepository(
         personaId = personaId,
         summary = summary
     )
+
+    private fun getUserFriendlyError(e: Exception): String {
+        val message = e.message ?: ""
+        return when {
+            message.contains("HTTP 401") || message.contains("Unauthorized") ->
+                "Invalid API key. Please check your Settings."
+            message.contains("HTTP 4") ->
+                "Request failed. Please try again."
+            message.contains("network", ignoreCase = true) ||
+             message.contains("connection", ignoreCase = true) ||
+             message.contains("timeout", ignoreCase = true) ->
+                "Connection issue. Please check your internet."
+            message.contains("Fields [id", ignoreCase = true) ||
+             message.contains("Fields [id, choices]", ignoreCase = true) ->
+                "Unable to connect. Please check your API key in Settings."
+            else -> "Something went wrong. Please try again."
+        }
+    }
 
     private fun Chat.toEntity() = ChatEntity(
         id = id,

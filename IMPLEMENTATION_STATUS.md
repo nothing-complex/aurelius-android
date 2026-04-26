@@ -20,7 +20,8 @@
 | Refactor & Polish | COMPLETED |
 | Feature Build | COMPLETED |
 | Polish | COMPLETED |
-| Final QA | IN PROGRESS |
+| Final QA | COMPLETED |
+| Crash Fix | IN PROGRESS |
 
 ---
 
@@ -41,9 +42,11 @@
 - [x] **Milestone 10:** Feature Build - Conversation Branching, AI Summaries, Persona System (4 personas)
 - [x] **Milestone 11:** Polish - Bubble elevation, send button visibility, quick actions, ChatRepository interface, named constants
 
+- [x] **Final QA:** VERDACTED (followed by crash at startup)
+
 ### In Progress
 
-- [ ] **Final QA:** quick-qa-check running independent verification, verdict pending
+- [ ] **Milestone 12:** Crash Fix - ANR on launch, main thread blocking. startup-crash-fixer investigating AureliusApplication, MainActivity, AppModule
 
 ---
 
@@ -92,7 +95,8 @@
 8. ~~Refactor & Polish~~ (COMPLETED - scope 47%)
 9. ~~Feature Build~~ (COMPLETED - branching, summaries, personas)
 10. ~~Polish~~ (COMPLETED - CRITICAL bugs + creative quick wins)
-11. **Final QA IN PROGRESS** - quick-qa-check independent verification
+11. ~~Final QA~~ (COMPLETED - followed by crash at startup)
+12. **URGENT: Crash Fix IN PROGRESS** - ANR on launch, investigating AureliusApplication, MainActivity, AppModule
 
 ---
 
@@ -103,6 +107,14 @@
 - **Latest Commit:** 37c9f5a
 - **Tag:** `pre-v2-initial` — baseline for v2 development
 - **Commit Stats:** 48 files, 4587 insertions
+
+---
+
+## Critical Blocker
+
+- **ANR on startup**: App crashes immediately on launch. Main thread blocking at startup. Android kills after 5 seconds.
+- **Investigating**: AureliusApplication, MainActivity, AppModule
+- **After fix**: Push to GitHub and re-test on device
 
 ---
 

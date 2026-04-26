@@ -25,10 +25,10 @@ val appModule = module {
     // Security
     single { SecureStorage(androidContext()) }
 
-    // Database
-    single { AppDatabase.getInstance(androidContext()) }
-    single { get<AppDatabase>().chatDao() }
-    single { get<AppDatabase>().messageDao() }
+    // Database - lazy to defer Room initialization off the main thread
+    single(createdAtStart = false) { AppDatabase.getInstance(androidContext()) }
+    single(createdAtStart = false) { get<AppDatabase>().chatDao() }
+    single(createdAtStart = false) { get<AppDatabase>().messageDao() }
 
     // Network
     factory { ToolExecutor(get()) }
