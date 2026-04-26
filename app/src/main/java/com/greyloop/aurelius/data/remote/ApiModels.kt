@@ -255,3 +255,47 @@ data class ImageUnderstandingMessage(
     val role: String,
     val content: String
 )
+
+// ============================================================
+// Anthropic API models (for codingPlanKey / sk-cp- keys)
+// ============================================================
+
+@Serializable
+data class AnthropicRequest(
+    val model: String,
+    val messages: List<AnthropicMessage>,
+    val max_tokens: Int = 4096,
+    val system: String? = null
+)
+
+@Serializable
+data class AnthropicMessage(
+    val role: String,
+    val content: String
+)
+
+@Serializable
+data class AnthropicResponse(
+    val id: String,
+    val type: String,
+    val role: String,
+    val content: List<AnthropicContentBlock>,
+    val model: String,
+    @SerialName("stop_reason")
+    val stopReason: String? = null,
+    val usage: AnthropicUsage? = null
+)
+
+@Serializable
+data class AnthropicContentBlock(
+    val type: String,
+    val text: String? = null
+)
+
+@Serializable
+data class AnthropicUsage(
+    @SerialName("input_tokens")
+    val inputTokens: Int,
+    @SerialName("output_tokens")
+    val outputTokens: Int
+)
