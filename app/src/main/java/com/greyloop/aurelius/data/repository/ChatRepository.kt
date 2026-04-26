@@ -55,7 +55,7 @@ class ChatRepository(
     protected open fun getApiUrl(): String {
         return when (secureStorage.region) {
             SecureStorage.REGION_CHINA -> "https://api.minimax.chat/v1/text/chatcompletion_v2"
-            else -> "https://api.minimax.chat/v1/text/chatcompletion_v2"
+            else -> "https://api.minimax.io/v1/text/chatcompletion_v2"
         }
     }
 
