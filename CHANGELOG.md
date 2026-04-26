@@ -70,12 +70,14 @@
 
 ### Final QA (2026-04-26) — COMPLETED (followed by crash)
 
-### Milestone 12: Crash Fix (2026-04-26) — IN PROGRESS
+### Milestone 12: Crash Fix (2026-04-26) — COMPLETED
 - CRITICAL: App crashes on launch (ANR - "excessive binder traffic during cached")
 - App freezes immediately, Android kills after 5 seconds
-- startup-crash-fixer investigating: AureliusApplication, MainActivity, AppModule
-- Cause: main thread blocking at startup
-- Need to push fix to GitHub and re-test on device after resolved
+- Root cause: Room database eagerly initialized via Koin `single` without `createdAtStart=false`
+- Fix: AppModule.kt — Added `createdAtStart = false` to Room database Koin singletons
+- Build verified: `BUILD SUCCESSFUL in 7s`
+- Git push: commit 3f8b527, all Phase 2 files committed
+- Physical device testing pending
 
 ### GitHub Status (2026-04-26)
 - Repo: https://github.com/nothing-complex/aurelius-android (public)
