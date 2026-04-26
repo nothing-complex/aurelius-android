@@ -10,7 +10,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,13 +40,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +66,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +79,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.greyloop.aurelius.domain.model.DefaultPersonas
 import com.greyloop.aurelius.domain.model.Message
+import com.greyloop.aurelius.domain.model.Persona
 import com.greyloop.aurelius.domain.model.Role
 import com.greyloop.aurelius.ui.components.MarkdownText
 import kotlinx.coroutines.delay
@@ -88,6 +100,9 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    val shouldScrollToBottom by remember {
+        derivedStateOf { uiState.messages.isNotEmpty() }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -100,12 +115,15 @@ fun ChatScreen(
                 is ChatEvent.Error -> {
                     // Error handled in UI state
                 }
+                is ChatEvent.BranchCreated -> {
+                    // Navigate to the new branch chat
+                }
             }
         }
     }
 
-    LaunchedEffect(uiState.messages.size) {
-        if (uiState.messages.isNotEmpty()) {
+    LaunchedEffect(shouldScrollToBottom) {
+        if (shouldScrollToBottom) {
             listState.animateScrollToItem(uiState.messages.size - 1)
         }
     }
@@ -122,9 +140,10 @@ fun ChatScreen(
                         )
                         if (uiState.chat != null) {
                             Text(
-                                text = "Aurelius",
+                                text = uiState.currentPersona.name,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                modifier = Modifier.clickable { viewModel.togglePersonaSelector() }
                             )
                         }
                     }
@@ -132,6 +151,44 @@ fun ChatScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    // Overflow menu
+                    var showOverflowMenu by androidx.compose.runtime.mutableStateOf(false)
+                    IconButton(onClick = { showOverflowMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                    }
+                    DropdownMenu(
+                        expanded = showOverflowMenu,
+                        onDismissRequest = { showOverflowMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Summarize conversation") },
+                            onClick = {
+                                viewModel.onGenerateSummary()
+                                showOverflowMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Summarize, contentDescription = null)
+                            }
+                        )
+                    }
+
+                    // Persona selector dropdown
+                    DropdownMenu(
+                        expanded = uiState.showPersonaSelector,
+                        onDismissRequest = { viewModel.togglePersonaSelector() }
+                    ) {
+                        DefaultPersonas.all.forEach { persona ->
+                            DropdownMenuItem(
+                                text = { Text(persona.name) },
+                                onClick = { viewModel.onPersonaSelected(persona) },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Person, contentDescription = null)
+                                }
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -155,7 +212,10 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.messages, key = { it.id }) { message ->
-                    MessageBubble(message = message)
+                    MessageBubble(
+                        message = message,
+                        onBranchClick = { messageId -> viewModel.onBranchConversation(messageId) }
+                    )
                 }
 
                 // Streaming indicator
@@ -180,20 +240,14 @@ fun ChatScreen(
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                TextButton(onClick = { /* Image picker */ }) {
-                    Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Image")
+                FilledTonalIconButton(onClick = { /* Image picker */ }) {
+                    Icon(Icons.Default.Image, contentDescription = "Add image")
                 }
-                TextButton(onClick = { /* Voice input */ }) {
-                    Icon(Icons.Default.MusicNote, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Music")
+                FilledTonalIconButton(onClick = { /* Voice input */ }) {
+                    Icon(Icons.Default.MusicNote, contentDescription = "Add music")
                 }
-                TextButton(onClick = { /* Web search */ }) {
-                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Search")
+                FilledTonalIconButton(onClick = { /* Web search */ }) {
+                    Icon(Icons.Default.Search, contentDescription = "Web search")
                 }
             }
 
@@ -218,37 +272,24 @@ fun ChatScreen(
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = CircleShape,
-                    color = if (uiState.inputText.isNotEmpty() && !uiState.isLoading) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
+                FilledTonalIconButton(
                     onClick = {
                         if (uiState.inputText.isNotEmpty() && !uiState.isLoading) {
                             viewModel.sendMessage()
                         }
-                    }
+                    },
+                    enabled = uiState.inputText.isNotEmpty() && !uiState.isLoading
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Send",
-                                tint = if (uiState.inputText.isNotEmpty()) {
-                                    MaterialTheme.colorScheme.onPrimary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
-                        }
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send"
+                        )
                     }
                 }
             }
@@ -282,8 +323,12 @@ fun ChatScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MessageBubble(message: Message) {
+private fun MessageBubble(
+    message: Message,
+    onBranchClick: (String) -> Unit
+) {
     val isUser = message.role == Role.USER
 
     AnimatedVisibility(
@@ -295,7 +340,12 @@ private fun MessageBubble(message: Message) {
         }
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = { if (isUser) onBranchClick(message.id) }
+                ),
             horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
         ) {
         if (!isUser) {
@@ -330,8 +380,9 @@ private fun MessageBubble(message: Message) {
                 color = if (isUser) {
                     MaterialTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
+                    MaterialTheme.colorScheme.tertiaryContainer
+                },
+                shadowElevation = 4.dp
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     if (isUser) {

@@ -63,6 +63,13 @@
 - Fixing 2 CRITICAL bugs from bug hunt
 - Top 5 creative quick wins from creative-review.md
 
+### GitHub Status (2026-04-26)
+- Repo: https://github.com/nothing-complex/aurelius-android (public)
+- Branch: master
+- 48 files committed (4587 insertions)
+- Tag: `pre-v2-initial` — baseline for v2 development
+- Message: "Aurelius v2: ground-up redesign with MiniMax MCP integration, Material 3 UI, security fixes"
+
 ### Milestone 5: Engineering Build (2026-04-26) — COMPLETED
 - BUILD SUCCESSFUL in 21s
 - APK: `app/build/outputs/apk/debug/app-debug.apk`

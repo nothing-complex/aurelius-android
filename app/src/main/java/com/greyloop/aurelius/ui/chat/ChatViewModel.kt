@@ -3,9 +3,13 @@ package com.greyloop.aurelius.ui.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.greyloop.aurelius.domain.model.Chat
+import com.greyloop.aurelius.domain.model.DefaultPersonas
 import com.greyloop.aurelius.domain.model.Message
+import com.greyloop.aurelius.domain.model.Persona
 import com.greyloop.aurelius.domain.model.Role
+import com.greyloop.aurelius.domain.usecase.BranchChatUseCase
 import com.greyloop.aurelius.domain.usecase.CreateChatUseCase
+import com.greyloop.aurelius.domain.usecase.GenerateSummaryUseCase
 import com.greyloop.aurelius.domain.usecase.GetChatUseCase
 import com.greyloop.aurelius.domain.usecase.GetMessagesUseCase
 import com.greyloop.aurelius.domain.usecase.SendMessageUseCase
@@ -26,12 +30,16 @@ data class ChatUiState(
     val inputText: String = "",
     val isLoading: Boolean = false,
     val streamingContent: String = "",
-    val error: String? = null
+    val error: String? = null,
+    val currentPersona: Persona = DefaultPersonas.ASSISTANT,
+    val isGeneratingSummary: Boolean = false,
+    val showPersonaSelector: Boolean = false
 )
 
 sealed class ChatEvent {
     data class Error(val message: String) : ChatEvent()
     data object ScrollToBottom : ChatEvent()
+    data class BranchCreated(val newChatId: String) : ChatEvent()
 }
 
 class ChatViewModel(
@@ -39,7 +47,9 @@ class ChatViewModel(
     private val getChatUseCase: GetChatUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val createChatUseCase: CreateChatUseCase
+    private val createChatUseCase: CreateChatUseCase,
+    private val branchChatUseCase: BranchChatUseCase,
+    private val generateSummaryUseCase: GenerateSummaryUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -121,5 +131,58 @@ class ChatViewModel(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun togglePersonaSelector() {
+        _uiState.value = _uiState.value.copy(
+            showPersonaSelector = !_uiState.value.showPersonaSelector
+        )
+    }
+
+    fun onPersonaSelected(persona: Persona) {
+        _uiState.value = _uiState.value.copy(
+            currentPersona = persona,
+            showPersonaSelector = false
+        )
+    }
+
+    fun onBranchConversation(messageId: String) {
+        viewModelScope.launch {
+            val currentChat = _uiState.value.chat ?: return@launch
+            try {
+                val newChat = branchChatUseCase(
+                    parentChatId = currentChat.id,
+                    parentMessageId = messageId,
+                    title = "Branch from: ${currentChat.title}"
+                )
+                _events.emit(ChatEvent.BranchCreated(newChat.id))
+            } catch (e: Exception) {
+                _events.emit(ChatEvent.Error("Failed to create branch: ${e.message}"))
+            }
+        }
+    }
+
+    fun onGenerateSummary() {
+        viewModelScope.launch {
+            val currentChat = _uiState.value.chat ?: return@launch
+            _uiState.value = _uiState.value.copy(isGeneratingSummary = true)
+            try {
+                val summary = generateSummaryUseCase(currentChat.id)
+                if (summary != null) {
+                    val updatedChat = currentChat.copy(summary = summary)
+                    // Note: In a full implementation, you'd persist this via UpdateChatUseCase
+                    _uiState.value = _uiState.value.copy(
+                        chat = updatedChat,
+                        isGeneratingSummary = false
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(isGeneratingSummary = false)
+                    _events.emit(ChatEvent.Error("Failed to generate summary"))
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isGeneratingSummary = false)
+                _events.emit(ChatEvent.Error("Summary error: ${e.message}"))
+            }
+        }
     }
 }

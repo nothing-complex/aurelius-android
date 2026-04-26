@@ -136,8 +136,8 @@ fun SettingsScreen(
                         value = uiState.minimaxApiKey,
                         onValueChange = viewModel::onMinimaxApiKeyChange,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .focusable(),
+                            .focusable()
+                            .fillMaxWidth(),
                         placeholder = { Text("Enter your MiniMax API key") },
                         visualTransformation = if (showApiKey) {
                             VisualTransformation.None
@@ -182,8 +182,8 @@ fun SettingsScreen(
                         value = uiState.codingPlanKey,
                         onValueChange = viewModel::onCodingPlanKeyChange,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .focusable(),
+                            .focusable()
+                            .fillMaxWidth(),
                         placeholder = { Text("Enter your Coding Plan key") },
                         visualTransformation = if (showCodingPlanKey) {
                             VisualTransformation.None

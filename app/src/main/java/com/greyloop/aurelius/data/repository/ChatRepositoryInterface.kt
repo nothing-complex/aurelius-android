@@ -10,7 +10,9 @@ interface ChatRepositoryInterface {
     fun getChatById(chatId: String): Flow<Chat?>
     fun getMessages(chatId: String): Flow<List<Message>>
     suspend fun getMessagesList(chatId: String): List<Message>
-    suspend fun createChat(title: String = "New chat"): Chat
+    suspend fun createChat(title: String = "New chat", personaId: String = "assistant"): Chat
+    suspend fun createBranchChat(parentChatId: String, parentMessageId: String, title: String): Chat
+    suspend fun generateSummary(chatId: String): String?
     suspend fun updateChat(chat: Chat)
     suspend fun deleteChat(chatId: String)
     fun searchChats(query: String): Flow<List<Chat>>

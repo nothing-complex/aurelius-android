@@ -85,6 +85,16 @@
 
 ---
 
+## GitHub Repository
+
+- **Repo:** https://github.com/nothing-complex/aurelius-android (public)
+- **Branch:** master
+- **Tag:** `pre-v2-initial` — baseline for v2 development
+- **Commit:** 48 files, 4587 insertions
+- **Message:** "Aurelius v2: ground-up redesign with MiniMax MCP integration, Material 3 UI, security fixes"
+
+---
+
 ## Known Issue
 
 - **404 on AI response**: External server/API issue, not app bug. App code is solid.

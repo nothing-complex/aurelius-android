@@ -14,6 +14,7 @@ import com.greyloop.aurelius.data.remote.ToolDefinition
 import com.greyloop.aurelius.data.security.SecureStorage
 import com.greyloop.aurelius.domain.model.AttachmentType
 import com.greyloop.aurelius.domain.model.Chat
+import com.greyloop.aurelius.domain.model.DefaultPersonas
 import com.greyloop.aurelius.domain.model.Message
 import com.greyloop.aurelius.domain.model.Role
 import kotlinx.coroutines.Dispatchers
@@ -56,60 +57,131 @@ class ChatRepository(
         }
     }
 
-    fun getAllChats(): Flow<List<Chat>> {
+    override fun getAllChats(): Flow<List<Chat>> {
         return chatDao.getAllChats().map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    fun getRecentChats(limit: Int = 20): Flow<List<Chat>> {
+    override fun getRecentChats(limit: Int): Flow<List<Chat>> {
         return chatDao.getRecentChats(limit).map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    fun getChatById(chatId: String): Flow<Chat?> {
+    override fun getChatById(chatId: String): Flow<Chat?> {
         return chatDao.getChatByIdFlow(chatId).map { it?.toDomain() }
     }
 
-    fun getMessages(chatId: String): Flow<List<Message>> {
+    override fun getMessages(chatId: String): Flow<List<Message>> {
         return messageDao.getMessages(chatId).map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    suspend fun getMessagesList(chatId: String): List<Message> {
+    override suspend fun getMessagesList(chatId: String): List<Message> {
         return messageDao.getMessagesList(chatId).map { it.toDomain() }
     }
 
-    suspend fun createChat(title: String = "New chat"): Chat {
+    override suspend fun createChat(title: String, personaId: String): Chat {
         val now = System.currentTimeMillis()
         val chat = ChatEntity(
             id = UUID.randomUUID().toString(),
             title = title,
             preview = "",
             createdAt = now,
-            updatedAt = now
+            updatedAt = now,
+            personaId = personaId
         )
         chatDao.insert(chat)
         return chat.toDomain()
     }
 
-    suspend fun updateChat(chat: Chat) {
+    override suspend fun createBranchChat(parentChatId: String, parentMessageId: String, title: String): Chat {
+        val parentChat = chatDao.getChatById(parentChatId)
+        val now = System.currentTimeMillis()
+        val branchChat = ChatEntity(
+            id = UUID.randomUUID().toString(),
+            title = title,
+            preview = "",
+            createdAt = now,
+            updatedAt = now,
+            parentBranchId = parentChatId,
+            personaId = parentChat?.personaId ?: "assistant"
+        )
+        chatDao.insert(branchChat)
+        return branchChat.toDomain()
+    }
+
+    override suspend fun generateSummary(chatId: String): String? {
+        val messages = messageDao.getMessagesList(chatId)
+        if (messages.size < 10) return null
+
+        val conversationText = messages.takeLast(20).joinToString("\n") { msg ->
+            "${msg.role}: ${msg.content}"
+        }
+
+        return try {
+            val summaryRequest = ChatCompletionRequest(
+                model = "abab6.5-chat",
+                messages = listOf(
+                    ApiMessage(
+                        role = "system",
+                        content = "You are a summarization assistant. Create a brief 2-3 sentence summary of the conversation above."
+                    ),
+                    ApiMessage(
+                        role = "user",
+                        content = "Summarize this conversation briefly:\n$conversationText"
+                    )
+                ),
+                tools = emptyList(),
+                stream = false
+            )
+
+            val requestBody = json.encodeToString(
+                ChatCompletionRequest.serializer(),
+                summaryRequest
+            ).toRequestBody("application/json".toMediaType())
+
+            val apiKey = secureStorage.codingPlanKey.ifEmpty { secureStorage.minimaxApiKey }
+            val request = Request.Builder()
+                .url(getApiUrl())
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build()
+
+            var result: String? = null
+            withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext
+                    val body = response.body?.string() ?: "{}"
+                    val chatResponse = json.decodeFromString<ChatCompletionResponse>(body)
+                    result = chatResponse.choices.firstOrNull()?.message?.content?.take(200)
+                }
+            }
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "generateSummary error", e)
+            null
+        }
+    }
+
+    override suspend fun updateChat(chat: Chat) {
         chatDao.update(chat.toEntity())
     }
 
-    suspend fun deleteChat(chatId: String) {
+    override suspend fun deleteChat(chatId: String) {
         chatDao.deleteById(chatId)
     }
 
-    fun searchChats(query: String): Flow<List<Chat>> {
+    override fun searchChats(query: String): Flow<List<Chat>> {
         return chatDao.searchChats(query).map { entities ->
             entities.map { it.toDomain() }
         }
     }
 
-    suspend fun sendMessage(
+    override suspend fun sendMessage(
         chatId: String,
         content: String,
         onStreamingUpdate: (String) -> Unit,
@@ -138,7 +210,12 @@ class ChatRepository(
 
             // Get message history
             val history = messageDao.getMessagesList(chatId)
-            val apiMessages = history.map { msg ->
+
+            // Get persona system prompt
+            val persona = chat?.let { DefaultPersonas.getById(it.personaId) } ?: DefaultPersonas.ASSISTANT
+            val personaMessage = ApiMessage(role = "system", content = persona.systemPrompt)
+
+            val apiMessages = listOf(personaMessage) + history.map { msg ->
                 ApiMessage(
                     role = msg.role,
                     content = msg.content
@@ -359,7 +436,9 @@ class ChatRepository(
         preview = preview,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        parentBranchId = parentBranchId
+        parentBranchId = parentBranchId,
+        personaId = personaId,
+        summary = summary
     )
 
     private fun Chat.toEntity() = ChatEntity(
@@ -368,7 +447,9 @@ class ChatRepository(
         preview = preview,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        parentBranchId = parentBranchId
+        parentBranchId = parentBranchId,
+        personaId = personaId,
+        summary = summary
     )
 
     private fun MessageEntity.toDomain() = Message(
@@ -387,6 +468,8 @@ class ChatRepository(
         parentMessageId = parentMessageId
     )
 
-    private const val TAG = "ChatRepository"
-    private const val MAX_PREVIEW_LENGTH = 60
+    companion object {
+        private const val TAG = "ChatRepository"
+        private const val MAX_PREVIEW_LENGTH = 60
+    }
 }

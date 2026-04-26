@@ -6,7 +6,9 @@ data class Chat(
     val preview: String,
     val createdAt: Long,
     val updatedAt: Long,
-    val parentBranchId: String? = null
+    val parentBranchId: String? = null,
+    val personaId: String = "default",
+    val summary: String? = null
 )
 
 data class Message(
