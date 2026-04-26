@@ -76,16 +76,19 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    scope.launch {
-                        val newChat = viewModel.createNewChat()
-                        onNewChat(newChat.id)
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "New chat")
+            // Hide FAB when showing empty state (redundant with center button)
+            if (uiState.chats.isNotEmpty() || uiState.isLoading) {
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            val newChat = viewModel.createNewChat()
+                            onNewChat(newChat.id)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "New chat")
+                }
             }
         }
     ) { padding ->
@@ -94,21 +97,23 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Search bar
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::onSearchQueryChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .focusable(),
-                placeholder = { Text("Search conversations...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null)
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(24.dp)
-            )
+            // Search bar - only show when there are chats to search
+            if (uiState.chats.isNotEmpty()) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = viewModel::onSearchQueryChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .focusable(),
+                    placeholder = { Text("Search conversations...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(24.dp)
+                )
+            }
 
             // Chat list
             if (uiState.chats.isEmpty() && !uiState.isLoading) {
@@ -143,7 +148,7 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Tap the + button to create your first chat with Aurelius",
+                            "Begin your first conversation with Aurelius",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 16.dp)
