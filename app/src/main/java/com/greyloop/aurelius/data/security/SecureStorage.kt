@@ -39,6 +39,10 @@ class SecureStorage(context: Context) {
         get() = securePrefs.getString(KEY_PLAN_TYPE, PLAN_STANDARD) ?: PLAN_STANDARD
         set(value) = securePrefs.edit().putString(KEY_PLAN_TYPE, value).apply()
 
+    var themeMode: String
+        get() = securePrefs.getString(KEY_THEME_MODE, THEME_SYSTEM) ?: THEME_SYSTEM
+        set(value) = securePrefs.edit().putString(KEY_THEME_MODE, value).apply()
+
     var setupComplete: Boolean
         get() = securePrefs.getBoolean(KEY_SETUP_COMPLETE, false)
         set(value) = securePrefs.edit().putBoolean(KEY_SETUP_COMPLETE, value).apply()
@@ -54,10 +58,14 @@ class SecureStorage(context: Context) {
         private const val KEY_REGION = "region"
         private const val KEY_PLAN_TYPE = "plan_type"
         private const val KEY_SETUP_COMPLETE = "setup_complete"
+        private const val KEY_THEME_MODE = "theme_mode"
 
         const val REGION_GLOBAL = "global"
         const val REGION_CHINA = "china"
         const val PLAN_STANDARD = "standard"
         const val PLAN_CODING_PLAN_PLUS = "coding_plan_plus"
+        const val THEME_SYSTEM = "system"
+        const val THEME_LIGHT = "light"
+        const val THEME_DARK = "dark"
     }
 }

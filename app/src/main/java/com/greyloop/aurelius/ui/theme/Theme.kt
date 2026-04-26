@@ -78,3 +78,11 @@ fun AureliusTheme(
         content = content
     )
 }
+
+fun darkThemeFromMode(themeMode: String): Boolean? {
+    return when (themeMode) {
+        "light" -> false
+        "dark" -> true
+        else -> null // system default
+    }
+}

@@ -314,6 +314,56 @@ fun SettingsScreen(
                 }
             }
 
+            // Theme Section
+            Text(
+                text = "Theme",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Follow System", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        RadioButton(
+                            selected = uiState.themeMode == SecureStorage.THEME_SYSTEM,
+                            onClick = { viewModel.onThemeModeChange(SecureStorage.THEME_SYSTEM) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Light", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        RadioButton(
+                            selected = uiState.themeMode == SecureStorage.THEME_LIGHT,
+                            onClick = { viewModel.onThemeModeChange(SecureStorage.THEME_LIGHT) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Dark", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        RadioButton(
+                            selected = uiState.themeMode == SecureStorage.THEME_DARK,
+                            onClick = { viewModel.onThemeModeChange(SecureStorage.THEME_DARK) }
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save Button

@@ -11,6 +11,7 @@ data class SettingsUiState(
     val codingPlanKey: String = "",
     val region: String = SecureStorage.REGION_GLOBAL,
     val planType: String = SecureStorage.PLAN_STANDARD,
+    val themeMode: String = SecureStorage.THEME_SYSTEM,
     val setupComplete: Boolean = false,
     val isSaving: Boolean = false,
     val message: String? = null
@@ -33,6 +34,7 @@ class SettingsViewModel(
             codingPlanKey = secureStorage.codingPlanKey,
             region = secureStorage.region,
             planType = secureStorage.planType,
+            themeMode = secureStorage.themeMode,
             setupComplete = secureStorage.setupComplete
         )
     }
@@ -53,6 +55,10 @@ class SettingsViewModel(
         _uiState.value = _uiState.value.copy(planType = planType)
     }
 
+    fun onThemeModeChange(themeMode: String) {
+        _uiState.value = _uiState.value.copy(themeMode = themeMode)
+    }
+
     fun saveSettings() {
         _uiState.value = _uiState.value.copy(isSaving = true)
 
@@ -61,6 +67,7 @@ class SettingsViewModel(
             secureStorage.codingPlanKey = _uiState.value.codingPlanKey
             secureStorage.region = _uiState.value.region
             secureStorage.planType = _uiState.value.planType
+            secureStorage.themeMode = _uiState.value.themeMode
             secureStorage.setupComplete = true
 
             _uiState.value = _uiState.value.copy(

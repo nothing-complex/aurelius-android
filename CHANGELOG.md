@@ -56,16 +56,26 @@
 - compose-ui-expert: 4 improvements
 - Scope completion: 47%
 
-### Milestone 10: Feature Build (2026-04-26) — IN PROGRESS
-- Implementing 3 missing features: branching, summaries, personas
+### Milestone 10: Feature Build (2026-04-26) — COMPLETED
+- Conversation Branching (long-press to branch)
+- AI Summaries (auto + manual)
+- Persona System (4 personas)
 
-### Milestone 11: Polish (2026-04-26) — IN PROGRESS
-- Fixing 2 CRITICAL bugs from bug hunt
-- Top 5 creative quick wins from creative-review.md
+### Milestone 11: Polish (2026-04-26) — COMPLETED
+- Bubble elevation implemented (ui-critic feedback)
+- Send button visibility improved (visual-hierarchy-auditor)
+- Quick actions added (creative quick wins)
+- ChatRepository interface added (CRITICAL fix)
+- Magic numbers replaced with named constants (CRITICAL fix)
+
+### Final QA (2026-04-26) — IN PROGRESS
+- quick-qa-check running independent verification
+- Final verdict pending
 
 ### GitHub Status (2026-04-26)
 - Repo: https://github.com/nothing-complex/aurelius-android (public)
 - Branch: master
+- Latest commit: 37c9f5a
 - 48 files committed (4587 insertions)
 - Tag: `pre-v2-initial` — baseline for v2 development
 - Message: "Aurelius v2: ground-up redesign with MiniMax MCP integration, Material 3 UI, security fixes"

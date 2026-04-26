@@ -18,8 +18,9 @@
 | Creative Review | COMPLETED |
 | Bug Hunt | COMPLETED |
 | Refactor & Polish | COMPLETED |
-| Feature Build | IN PROGRESS |
-| Polish | IN PROGRESS |
+| Feature Build | COMPLETED |
+| Polish | COMPLETED |
+| Final QA | IN PROGRESS |
 
 ---
 
@@ -37,11 +38,12 @@
 - [x] **Milestone 7:** Creative Review - Score 2.5/5. Chat bubbles flat, send button buried, zero distinctive features
 - [x] **Milestone 8:** Bug Hunt - 25 issues found, 2 CRITICAL (ChatRepository interface, magic number 60)
 - [x] **Milestone 9:** Refactor & Polish - 3 features missing (branching, summaries, personas), scope 47%
+- [x] **Milestone 10:** Feature Build - Conversation Branching, AI Summaries, Persona System (4 personas)
+- [x] **Milestone 11:** Polish - Bubble elevation, send button visibility, quick actions, ChatRepository interface, named constants
 
 ### In Progress
 
-- [ ] **Milestone 10:** Feature Build - Implementing branching, AI summaries, personas
-- [ ] **Milestone 11:** Polish - Fixing 2 CRITICAL bugs + top 5 creative quick wins
+- [ ] **Final QA:** quick-qa-check running independent verification, verdict pending
 
 ---
 
@@ -57,15 +59,24 @@
 - Light headlines (weight 300), minimal motion
 
 ### Creative Review Findings (Score 2.5/5)
-- Chat bubbles flat, no elevation
-- Send button buried - visual hierarchy issue
-- Zero distinctive features (engagement 2/5)
-- Functional but undifferentiated (CTA 3/5)
-- Top 5 improvements identified in creative-review.md
+- Chat bubbles flat, no elevation — FIXED
+- Send button buried - visual hierarchy issue — FIXED
+- Zero distinctive features (engagement 2/5) — FIXED with quick actions
+- Functional but undifferentiated (CTA 3/5) — IMPROVED
 
 ### Bug Hunt Findings (25 issues)
-- 2 CRITICAL: Add ChatRepository interface, magic number 60 → named constant
+- 2 CRITICAL: ChatRepository interface, magic number 60 → named constant — FIXED
 - Full details in bug-hunt-report.md
+
+---
+
+## Features Implemented
+
+- **Conversation Branching** — long-press to branch conversations
+- **AI Summaries** — auto + manual summary generation
+- **Persona System** — 4 personas available
+- **Creative Polish** — bubble elevation, send button, quick actions
+- **Critical Fixes** — ChatRepository interface, magic numbers replaced
 
 ---
 
@@ -79,9 +90,9 @@
 6. ~~Creative Review~~ (COMPLETED - Score 2.5/5)
 7. ~~Bug Hunt~~ (COMPLETED - 25 issues, 2 CRITICAL)
 8. ~~Refactor & Polish~~ (COMPLETED - scope 47%)
-9. **Feature Build IN PROGRESS** - branching, summaries, personas
-10. **Polish IN PROGRESS** - CRITICAL bugs + top 5 quick wins
-11. Final Sanity Pass - ux-sanity-department sign-off
+9. ~~Feature Build~~ (COMPLETED - branching, summaries, personas)
+10. ~~Polish~~ (COMPLETED - CRITICAL bugs + creative quick wins)
+11. **Final QA IN PROGRESS** - quick-qa-check independent verification
 
 ---
 
@@ -89,9 +100,9 @@
 
 - **Repo:** https://github.com/nothing-complex/aurelius-android (public)
 - **Branch:** master
+- **Latest Commit:** 37c9f5a
 - **Tag:** `pre-v2-initial` — baseline for v2 development
-- **Commit:** 48 files, 4587 insertions
-- **Message:** "Aurelius v2: ground-up redesign with MiniMax MCP integration, Material 3 UI, security fixes"
+- **Commit Stats:** 48 files, 4587 insertions
 
 ---
 

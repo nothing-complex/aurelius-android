@@ -18,8 +18,10 @@ import com.greyloop.aurelius.domain.model.DefaultPersonas
 import com.greyloop.aurelius.domain.model.Message
 import com.greyloop.aurelius.domain.model.Role
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -248,6 +250,22 @@ class ChatRepository(
 
             onStreamingUpdate(finalContent)
             onComplete(assistantMessage.toDomain())
+
+            // Auto-summary trigger: check if 10+ messages and no summary exists
+            val chatForSummary = chatDao.getChatById(chatId)
+            if (chatForSummary?.summary == null) {
+                val messageCount = messageDao.getMessagesList(chatId).size
+                if (messageCount >= 10) {
+                    kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                        val summary = generateSummary(chatId)
+                        if (summary != null) {
+                            chatDao.getChatById(chatId)?.let { c ->
+                                chatDao.update(c.copy(summary = summary))
+                            }
+                        }
+                    }
+                }
+            }
 
         } catch (e: Exception) {
             Log.e(TAG, "sendMessage error", e)
