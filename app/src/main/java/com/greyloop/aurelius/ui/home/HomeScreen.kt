@@ -87,7 +87,7 @@ fun HomeScreen(
     }
     val headerAlpha by animateFloatAsState(
         targetValue = if (isScrollingDown.floatValue > 0.5f) 0.6f else 1f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 200f),
+        animationSpec = spring(dampingRatio = 20f / 100f, stiffness = 100f),
         label = "headerAlpha"
     )
 
@@ -194,17 +194,17 @@ fun HomeScreen(
             }
         }
 
-        // Floating dynamic header - overlay on top of content
+        // Parchment Scroll — floating header with parchment styling
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (isScrollingDown.floatValue > 0.5f) COLLAPSED_HEIGHT else EXPANDED_HEIGHT)
                 .align(Alignment.TopCenter)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 24.dp)
                 .alpha(headerAlpha),
-            shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
-            shadowElevation = 4.dp
+            shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            shadowElevation = 6.dp
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -215,7 +215,7 @@ fun HomeScreen(
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontSize = if (isScrollingDown.floatValue > 0.5f) COLLAPSED_FONT else EXPANDED_FONT
                     ),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }

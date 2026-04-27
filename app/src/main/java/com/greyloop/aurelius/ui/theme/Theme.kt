@@ -36,6 +36,19 @@ private val Parchment = Color(0xFFF5F0E8)           // Surface light
 private val DeepCharcoal = Color(0xFF1C1A18)       // Background dark
 private val DarkSurface = Color(0xFF252320)        // Surface dark
 
+// Concept B Terracotta Scholar — semantic bubble colors
+private val UserBubble = Terracotta                    // User message background
+private val UserBubbleDark = TerracottaDark            // User bubble dark variant
+private val AIBubble = DeepSage                        // AI message background (sage)
+private val TerracottaBorder = Color(0xFFB8956E)      // Subtle terracotta left-border accent
+
+// Concept A — The Parchment Scroll
+// Single-column centered conversation, aged paper feel, letter-exchange aesthetic
+val AgedParchment = Color(0xFFF5EDE0)        // Scroll/aged paper background
+val ParchmentInk = Color(0xFF3D2E1C)          // Deep ink for text
+val LetterSage = Color(0xFF4A6358)            // AI message sage (same family)
+val ScrollBorder = Color(0xFFD9C4A8)          // Subtle aged paper edge
+
 private val EarthyDarkColorScheme = darkColorScheme(
     primary = TerracottaLight,
     secondary = WarmStone,
@@ -61,17 +74,17 @@ private val EarthyLightColorScheme = lightColorScheme(
     primary = Terracotta,
     secondary = WarmStone,
     tertiary = DeepSage,
-    background = WarmCream,
+    background = AgedParchment,      // Parchment Scroll: aged paper background
     surface = Parchment,
-    surfaceVariant = Color(0xFFEDE6DC),
+    surfaceVariant = ScrollBorder,   // Parchment Scroll: subtle aged edge
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = Color(0xFF2C2416),
-    onSurface = Color(0xFF2C2416),
+    onBackground = ParchmentInk,     // Parchment Scroll: deep ink text
+    onSurface = ParchmentInk,         // Parchment Scroll: deep ink text
     onSurfaceVariant = Color(0xFF5C5347),
-    primaryContainer = Color(0xFFFFE8C2),
-    onPrimaryContainer = Color(0xFF3D2E1C),
+    primaryContainer = Terracotta,
+    onPrimaryContainer = Color.White,
     secondaryContainer = Color(0xFFF0E6DA),
     onSecondaryContainer = Color(0xFF3D3530),
     tertiaryContainer = Color(0xFFD4E8D8),
