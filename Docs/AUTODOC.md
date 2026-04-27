@@ -27,7 +27,13 @@
 ### 5. Missing SnackbarResult Import (ChatScreen.kt)
 - **Fix**: Added `import androidx.compose.material3.SnackbarResult`
 
-### 6. Tool Definitions Stripped on Anthropic Path (ChatRepository.kt)
+### 6. Navigation Crash Fix (MainActivity.kt)
+- **Issue**: App crashed when navigating from Home to Chat on physical device
+- **Root Cause**: NavHost was conditionally rendered only when navController was not null, but composables inside tried to access it before initialization
+- **Fix**: NavHost now always present and directly uses rememberNavController(); navigation called via LaunchedEffect after composition
+- **Commit**: b7a963b
+
+### 7. Tool Definitions Stripped on Anthropic Path (ChatRepository.kt)
 - **Issue**: When codingPlanKey (sk-cp- key) is set, `executeChatCompletion` routes to `executeAnthropicChatCompletion` which does not pass `toolDefinitions` to the request
 - **Fix**: Tools are intentionally stripped on the Anthropic `/v1/messages` path since that endpoint handles tool-calling differently; `getAnthropicUrl()` added at line ~68 for region-based routing
 - **Lines**: ChatRepository.kt line ~281 (routing check), ~335+ (executeAnthropicChatCompletion body), `getAnthropicUrl()` at ~68
@@ -83,9 +89,22 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 
 ---
 
+## QA Results (2026-04-26)
+
+| Test | Result |
+|------|--------|
+| App launches | PASS |
+| Chat opens | PASS |
+| Navigation Home -> Chat | PASS (physical device) |
+| No crashes | PASS |
+
+---
+
 ## Current Status
 
+- **Status**: WORKING
 - **Milestone 14 UI/UX**: Research complete, design documented, implementation pending
+- **Navigation**: Fixed (NavHost always present, commit b7a963b)
 - **AI chat**: WORKING with sk-cp- API key
 - **Error handling**: Properly surfaces error messages via snackbar
 - **Build verified**: app-debug.apk (19.7 MB) at `app/build/outputs/apk/debug/`
@@ -97,8 +116,7 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 
 ## Known Issues
 
-- Navigation from Home to Chat may have issues on emulator (requires physical device testing)
-- QA tests on emulator showed Home screen persisting after "Start Chatting" tap
+- None — all known issues resolved as of 2026-04-26
 
 ---
 
@@ -116,6 +134,7 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 
 ## Recent Commits
 
+- `b7a963b` — Navigation crash fix: NavHost always present, physical device QA passed
 - `47831b5` — Add Anthropic API support for sk-cp Coding Plan keys
 - `905b2ee` — Fix API endpoint: /v1/chat/completions
 - `679969d` — Fix API endpoint, add AureliusTypography
