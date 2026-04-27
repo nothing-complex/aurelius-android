@@ -20,10 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.greyloop.aurelius.data.security.SecureStorage
 import com.greyloop.aurelius.ui.chat.ChatScreen
 import com.greyloop.aurelius.ui.home.HomeScreen
@@ -36,6 +38,10 @@ import org.koin.compose.koinInject
 private const val HOME_PAGE = 0
 private const val SETTINGS_PAGE = 1
 private const val PAGE_COUNT = 2
+
+private const val ROUTE_HOME = "home"
+private const val ROUTE_SETTINGS = "settings"
+private const val ROUTE_CHAT = "chat"
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,10 +56,10 @@ fun AureliusApp(
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
 
-    // Check if we're on chat screen
+    // Check current route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isChatScreen = currentRoute?.startsWith("chat") == true
+    val isOnChatScreen = currentRoute?.startsWith("chat") == true
 
     AureliusTheme(darkTheme = isDark) {
         Scaffold { innerPadding ->
@@ -61,59 +67,65 @@ fun AureliusApp(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 Box(modifier = Modifier.weight(1f)) {
-                    if (isChatScreen) {
-                        // Chat screen - no pager, just NavHost for chat
-                        NavHost(
-                            navController = navController,
-                            startDestination = "chat"
-                        ) {
-                            composable("chat") {
-                                // Placeholder - will be replaced by dynamic route
-                            }
-                            composable("chat/{chatId}") { backStackEntry ->
-                                val chatId = backStackEntry.arguments?.getString("chatId")
-                                ChatScreen(
-                                    chatId = if (chatId == "new") null else chatId,
-                                    onBack = { navController.popBackStack() }
-                                )
-                            }
-                        }
-                    } else {
-                        // Swipe navigation for Home/Settings
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier.fillMaxSize()
-                        ) { page ->
-                            when (page) {
-                                HOME_PAGE -> {
-                                    HomeScreen(
-                                        onChatClick = { chatId ->
-                                            navController.navigate("chat/$chatId")
-                                        },
-                                        onNewChat = { chatId ->
-                                            navController.navigate("chat/$chatId")
-                                        }
-                                    )
-                                }
-                                SETTINGS_PAGE -> {
-                                    SettingsScreen(
-                                        onBack = {
-                                            scope.launch {
-                                                pagerState.animateScrollToPage(HOME_PAGE)
+                    // NavHost with full navigation graph - always present
+                    NavHost(
+                        navController = navController,
+                        startDestination = ROUTE_HOME
+                    ) {
+                        // Home screen (with pager for Home/Settings)
+                        composable(ROUTE_HOME) {
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxSize()
+                            ) { page ->
+                                when (page) {
+                                    HOME_PAGE -> {
+                                        HomeScreen(
+                                            onChatClick = { chatId ->
+                                                navController.navigate("chat/$chatId")
+                                            },
+                                            onNewChat = { chatId ->
+                                                navController.navigate("chat/$chatId")
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
+                                    SETTINGS_PAGE -> {
+                                        SettingsScreen(
+                                            onBack = {
+                                                scope.launch {
+                                                    pagerState.animateScrollToPage(HOME_PAGE)
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
+
+                            // Page indicator
+                            PageIndicator(
+                                currentPage = pagerState.currentPage,
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 16.dp)
+                            )
                         }
 
-                        // Subtle page indicator dots
-                        PageIndicator(
-                            currentPage = pagerState.currentPage,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 16.dp)
-                        )
+                        // Chat screen
+                        composable(
+                            route = "chat/{chatId}",
+                            arguments = listOf(
+                                navArgument("chatId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val chatId = backStackEntry.arguments?.getString("chatId")
+                            ChatScreen(
+                                chatId = if (chatId == "new") null else chatId,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
                     }
                 }
             }

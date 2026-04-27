@@ -1,0 +1,70 @@
+com.greyloop.aurelius.app-jetified-material-icons-core-release-0 C:\Users\luka\.gradle\caches\transforms-3\007e62b07b4a85091870c02e9219e127\transformed\jetified-material-icons-core-release\res
+com.greyloop.aurelius.app-jetified-material-release-1 C:\Users\luka\.gradle\caches\transforms-3\04af4bc9ebc16f964fb05fc8aab2be15\transformed\jetified-material-release\res
+com.greyloop.aurelius.app-jetified-foundation-layout-release-2 C:\Users\luka\.gradle\caches\transforms-3\0f3eac97fb2197029d66a1d0f7d9622e\transformed\jetified-foundation-layout-release\res
+com.greyloop.aurelius.app-sqlite-framework-2.4.0-3 C:\Users\luka\.gradle\caches\transforms-3\14c5023742d7e2e09a414c54df7d1aa6\transformed\sqlite-framework-2.4.0\res
+com.greyloop.aurelius.app-jetified-ui-release-4 C:\Users\luka\.gradle\caches\transforms-3\175e4eac1e274ff61927664e13e1c17e\transformed\jetified-ui-release\res
+com.greyloop.aurelius.app-core-1.13.1-5 C:\Users\luka\.gradle\caches\transforms-3\1ebe64921aa4b1a709ca24c8832bd49e\transformed\core-1.13.1\res
+com.greyloop.aurelius.app-jetified-fragment-ktx-1.6.2-6 C:\Users\luka\.gradle\caches\transforms-3\1f0c37b1a33a2c353510ac268101a9a6\transformed\jetified-fragment-ktx-1.6.2\res
+com.greyloop.aurelius.app-jetified-ui-text-google-fonts-1.6.8-7 C:\Users\luka\.gradle\caches\transforms-3\2047a7b917fcda661acc157c06cfbfea\transformed\jetified-ui-text-google-fonts-1.6.8\res
+com.greyloop.aurelius.app-jetified-annotation-experimental-1.4.0-8 C:\Users\luka\.gradle\caches\transforms-3\25d5a45ee7b41237e373b1ca3b80d570\transformed\jetified-annotation-experimental-1.4.0\res
+com.greyloop.aurelius.app-jetified-navigation-compose-2.7.5-9 C:\Users\luka\.gradle\caches\transforms-3\2a505e18aa2dbb4db01b510ceb04b394\transformed\jetified-navigation-compose-2.7.5\res
+com.greyloop.aurelius.app-jetified-savedstate-ktx-1.2.1-10 C:\Users\luka\.gradle\caches\transforms-3\2bf77a79b7b9a01d97c05f2c75eb41cc\transformed\jetified-savedstate-ktx-1.2.1\res
+com.greyloop.aurelius.app-jetified-savedstate-1.2.1-11 C:\Users\luka\.gradle\caches\transforms-3\2df605012f16c622d72d1eed66e9c76e\transformed\jetified-savedstate-1.2.1\res
+com.greyloop.aurelius.app-lifecycle-livedata-2.7.0-12 C:\Users\luka\.gradle\caches\transforms-3\36809580d94c771c63f2c697e7f19bf6\transformed\lifecycle-livedata-2.7.0\res
+com.greyloop.aurelius.app-jetified-ext-tables-4.6.2-13 C:\Users\luka\.gradle\caches\transforms-3\3785de7b0d6cadcdc0d5e5c22607c571\transformed\jetified-ext-tables-4.6.2\res
+com.greyloop.aurelius.app-jetified-lifecycle-process-2.7.0-14 C:\Users\luka\.gradle\caches\transforms-3\3b42a59aee9e5a5cdd4441f167508a81\transformed\jetified-lifecycle-process-2.7.0\res
+com.greyloop.aurelius.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-15 C:\Users\luka\.gradle\caches\transforms-3\3bc0e537e48c40829e8a5f161ce1b4e5\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
+com.greyloop.aurelius.app-lifecycle-livedata-core-2.7.0-16 C:\Users\luka\.gradle\caches\transforms-3\4751dcabaea24094a43922bd1f1380e2\transformed\lifecycle-livedata-core-2.7.0\res
+com.greyloop.aurelius.app-jetified-foundation-release-17 C:\Users\luka\.gradle\caches\transforms-3\478e61eda826e55492c14798bc063d3a\transformed\jetified-foundation-release\res
+com.greyloop.aurelius.app-jetified-ui-geometry-release-18 C:\Users\luka\.gradle\caches\transforms-3\48c9ac68d8a4fa6a2254db84ea9b0be1\transformed\jetified-ui-geometry-release\res
+com.greyloop.aurelius.app-jetified-ui-text-release-19 C:\Users\luka\.gradle\caches\transforms-3\48cd2899322fd753ef91cf3788adfc84\transformed\jetified-ui-text-release\res
+com.greyloop.aurelius.app-jetified-security-crypto-1.1.0-alpha06-20 C:\Users\luka\.gradle\caches\transforms-3\4da1d4fb8f8f9643b882bfff151d718b\transformed\jetified-security-crypto-1.1.0-alpha06\res
+com.greyloop.aurelius.app-jetified-ui-util-release-21 C:\Users\luka\.gradle\caches\transforms-3\51142619a634c929af35dcf274f1fe38\transformed\jetified-ui-util-release\res
+com.greyloop.aurelius.app-jetified-material-ripple-release-22 C:\Users\luka\.gradle\caches\transforms-3\598ff290f06362e3bfd35da80e0c073d\transformed\jetified-material-ripple-release\res
+com.greyloop.aurelius.app-jetified-lifecycle-runtime-compose-2.7.0-23 C:\Users\luka\.gradle\caches\transforms-3\5db6ef8d2244a7755b4604eac4d2a865\transformed\jetified-lifecycle-runtime-compose-2.7.0\res
+com.greyloop.aurelius.app-jetified-activity-1.8.2-24 C:\Users\luka\.gradle\caches\transforms-3\60eb88d55d959ad395134889101174d7\transformed\jetified-activity-1.8.2\res
+com.greyloop.aurelius.app-jetified-activity-compose-1.8.2-25 C:\Users\luka\.gradle\caches\transforms-3\6433370f3e156c04822a89cb99c15c1f\transformed\jetified-activity-compose-1.8.2\res
+com.greyloop.aurelius.app-jetified-activity-ktx-1.8.2-26 C:\Users\luka\.gradle\caches\transforms-3\674ab23068b2471fcfecdcf321786029\transformed\jetified-activity-ktx-1.8.2\res
+com.greyloop.aurelius.app-jetified-lifecycle-livedata-core-ktx-2.7.0-27 C:\Users\luka\.gradle\caches\transforms-3\7583f7dba77edf01a6ceca48033d2332\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
+com.greyloop.aurelius.app-jetified-ui-tooling-preview-release-28 C:\Users\luka\.gradle\caches\transforms-3\7f848631d83c088e8d81f13cf5e733fe\transformed\jetified-ui-tooling-preview-release\res
+com.greyloop.aurelius.app-jetified-ui-test-manifest-1.6.8-29 C:\Users\luka\.gradle\caches\transforms-3\89b8439abd747d045aa30e349c52a7be\transformed\jetified-ui-test-manifest-1.6.8\res
+com.greyloop.aurelius.app-jetified-core-4.6.2-30 C:\Users\luka\.gradle\caches\transforms-3\8d97ef34820858e9e5f3a06f8aecd236\transformed\jetified-core-4.6.2\res
+com.greyloop.aurelius.app-core-runtime-2.2.0-31 C:\Users\luka\.gradle\caches\transforms-3\8e76d376e401f8cfa6da59d4d3e5fac5\transformed\core-runtime-2.2.0\res
+com.greyloop.aurelius.app-jetified-customview-poolingcontainer-1.0.0-32 C:\Users\luka\.gradle\caches\transforms-3\91dfb42b5f2b564adf9dd5b2e8e5b828\transformed\jetified-customview-poolingcontainer-1.0.0\res
+com.greyloop.aurelius.app-appcompat-1.7.0-33 C:\Users\luka\.gradle\caches\transforms-3\934d9e2f1585bd7950d5792a14156dde\transformed\appcompat-1.7.0\res
+com.greyloop.aurelius.app-jetified-ui-graphics-release-34 C:\Users\luka\.gradle\caches\transforms-3\93e1f5d7210d0db078064821b18df72c\transformed\jetified-ui-graphics-release\res
+com.greyloop.aurelius.app-navigation-runtime-2.7.5-35 C:\Users\luka\.gradle\caches\transforms-3\957a8ad3bf9206f6957b05102783c4ed\transformed\navigation-runtime-2.7.5\res
+com.greyloop.aurelius.app-jetified-lifecycle-runtime-ktx-2.7.0-36 C:\Users\luka\.gradle\caches\transforms-3\9a141dd8b3505c76da9d2fb5b9a43fe0\transformed\jetified-lifecycle-runtime-ktx-2.7.0\res
+com.greyloop.aurelius.app-jetified-animation-core-release-37 C:\Users\luka\.gradle\caches\transforms-3\9e518ecbc68ea5fc7ab21a93ba58f9fa\transformed\jetified-animation-core-release\res
+com.greyloop.aurelius.app-sqlite-2.4.0-38 C:\Users\luka\.gradle\caches\transforms-3\a08189853076f045d0036d8eb127b913\transformed\sqlite-2.4.0\res
+com.greyloop.aurelius.app-navigation-common-2.7.5-39 C:\Users\luka\.gradle\caches\transforms-3\a515c6743983e185e98b7aedc1541b5a\transformed\navigation-common-2.7.5\res
+com.greyloop.aurelius.app-jetified-ui-unit-release-40 C:\Users\luka\.gradle\caches\transforms-3\b1ba48cdbd50e07ea330da7822410d6c\transformed\jetified-ui-unit-release\res
+com.greyloop.aurelius.app-jetified-animation-release-41 C:\Users\luka\.gradle\caches\transforms-3\b1e465e9cec66fb916d507d1dde1b990\transformed\jetified-animation-release\res
+com.greyloop.aurelius.app-jetified-lifecycle-viewmodel-ktx-2.7.0-42 C:\Users\luka\.gradle\caches\transforms-3\b582e9071793e14a2ccd6998abd3fd38\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\res
+com.greyloop.aurelius.app-jetified-lifecycle-viewmodel-compose-2.7.0-43 C:\Users\luka\.gradle\caches\transforms-3\b79cff10cd0c3acd57bb498690d5fc12\transformed\jetified-lifecycle-viewmodel-compose-2.7.0\res
+com.greyloop.aurelius.app-fragment-1.6.2-44 C:\Users\luka\.gradle\caches\transforms-3\bfe5fda39e7f5f5500a852476095b4b7\transformed\fragment-1.6.2\res
+com.greyloop.aurelius.app-jetified-ui-tooling-release-45 C:\Users\luka\.gradle\caches\transforms-3\c3db0f2e768675beefcc96c4bdf05de4\transformed\jetified-ui-tooling-release\res
+com.greyloop.aurelius.app-navigation-runtime-ktx-2.7.5-46 C:\Users\luka\.gradle\caches\transforms-3\c46b1549f4ab9e67d6de1745703160a4\transformed\navigation-runtime-ktx-2.7.5\res
+com.greyloop.aurelius.app-jetified-startup-runtime-1.1.1-47 C:\Users\luka\.gradle\caches\transforms-3\c5574e0b5b458a1ec936a5d1e993a05a\transformed\jetified-startup-runtime-1.1.1\res
+com.greyloop.aurelius.app-jetified-emoji2-views-helper-1.3.0-48 C:\Users\luka\.gradle\caches\transforms-3\ce2f4ada4daa8c01ac30844587a34bca\transformed\jetified-emoji2-views-helper-1.3.0\res
+com.greyloop.aurelius.app-lifecycle-runtime-2.7.0-49 C:\Users\luka\.gradle\caches\transforms-3\d0e5275ff231a928f35a732446046377\transformed\lifecycle-runtime-2.7.0\res
+com.greyloop.aurelius.app-jetified-profileinstaller-1.3.1-50 C:\Users\luka\.gradle\caches\transforms-3\d3ad4908b91cf29ff224459b7856af80\transformed\jetified-profileinstaller-1.3.1\res
+com.greyloop.aurelius.app-lifecycle-viewmodel-2.7.0-51 C:\Users\luka\.gradle\caches\transforms-3\d690d4b4e2cd66ab06ce8868aabb3790\transformed\lifecycle-viewmodel-2.7.0\res
+com.greyloop.aurelius.app-room-runtime-2.6.1-52 C:\Users\luka\.gradle\caches\transforms-3\daa18f25f1989db50d53ec5c58df0084\transformed\room-runtime-2.6.1\res
+com.greyloop.aurelius.app-jetified-runtime-saveable-release-53 C:\Users\luka\.gradle\caches\transforms-3\dee5214e39b2306cc7e45de8580a50c1\transformed\jetified-runtime-saveable-release\res
+com.greyloop.aurelius.app-jetified-emoji2-1.3.0-54 C:\Users\luka\.gradle\caches\transforms-3\df18ceb8baa225689a7dcdd914962902\transformed\jetified-emoji2-1.3.0\res
+com.greyloop.aurelius.app-jetified-appcompat-resources-1.7.0-55 C:\Users\luka\.gradle\caches\transforms-3\e1eaf4bacb859b4f4fbbe3546a43521d\transformed\jetified-appcompat-resources-1.7.0\res
+com.greyloop.aurelius.app-jetified-material-icons-extended-release-56 C:\Users\luka\.gradle\caches\transforms-3\e1fcd7088f28368a783992d39aa87ce4\transformed\jetified-material-icons-extended-release\res
+com.greyloop.aurelius.app-jetified-core-ktx-1.13.1-57 C:\Users\luka\.gradle\caches\transforms-3\e8c91a115397de408375e2a9a02a0398\transformed\jetified-core-ktx-1.13.1\res
+com.greyloop.aurelius.app-jetified-material3-release-58 C:\Users\luka\.gradle\caches\transforms-3\f3c76ecd212e98ddf715a51d8d316aeb\transformed\jetified-material3-release\res
+com.greyloop.aurelius.app-navigation-common-ktx-2.7.5-59 C:\Users\luka\.gradle\caches\transforms-3\f629aefb662e043a1619bad5a674deb5\transformed\navigation-common-ktx-2.7.5\res
+com.greyloop.aurelius.app-jetified-room-ktx-2.6.1-60 C:\Users\luka\.gradle\caches\transforms-3\f7ecd92ab86e3fa9fc1bd6f604931230\transformed\jetified-room-ktx-2.6.1\res
+com.greyloop.aurelius.app-jetified-coil-base-2.7.0-61 C:\Users\luka\.gradle\caches\transforms-3\fa10869a7f8d148a41e21f5c5fe6edd0\transformed\jetified-coil-base-2.7.0\res
+com.greyloop.aurelius.app-jetified-runtime-release-62 C:\Users\luka\.gradle\caches\transforms-3\faa71e0df2acb1a4f5e3f2f3a951f931\transformed\jetified-runtime-release\res
+com.greyloop.aurelius.app-jetified-ui-tooling-data-release-63 C:\Users\luka\.gradle\caches\transforms-3\fb57785313bf0e58d036008b2104f77d\transformed\jetified-ui-tooling-data-release\res
+com.greyloop.aurelius.app-resValues-64 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\build\generated\res\resValues\debug
+com.greyloop.aurelius.app-packageDebugResources-65 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.greyloop.aurelius.app-packageDebugResources-66 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.greyloop.aurelius.app-merged_res-67 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\build\intermediates\merged_res\debug
+com.greyloop.aurelius.app-debug-68 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\src\debug\res
+com.greyloop.aurelius.app-main-69 C:\Users\luka\Projects\Greyloop\Android Apps\Aurelius\app\src\main\res
