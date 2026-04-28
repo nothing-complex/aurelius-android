@@ -2,6 +2,26 @@
 
 ## [Unreleased] — 2026-04-28
 
+### Features
+
+#### 1. Show Thinking Tags Setting
+AI reasoning (`)can now be toggled on/off via Settings → AI Responses → Show Thinking Tags. When enabled, thinking content displays as a faint italic footnote ABOVE the AI response bubble with a dashed border in LetterSage color.
+
+**Files Changed:**
+- `SecureStorage.kt` — added `showThinkingTags` Boolean preference
+- `SettingsScreen.kt` — added "AI Responses" card with Switch toggle
+- `SettingsViewModel.kt` — added toggle state and save logic
+- `ChatViewModel.kt` — added `SecureStorage` dependency, `showThinkingTags` to `ChatUiState`
+- `ChatScreen.kt` — `ThinkingTagFootnote` composable renders thinking content above AI bubble; `extractThinkingContent()` / `stripThinkingContent()` helpers added
+- `AppModule.kt` — updated `ChatViewModel` Koin definition with `SecureStorage`
+
+#### 2. Settings Gear Icon Navigation
+Added a Settings gear icon to the HomeScreen header, enabling direct navigation to Settings without relying on swipe gestures (which fail in emulator/ADB environments).
+
+**Files Changed:**
+- `HomeScreen.kt` — added `onSettingsClick` parameter and Settings `IconButton` in header
+- `AureliusApp.kt` — `onSettingsClick` triggers `pagerState.animateScrollToPage(SETTINGS_PAGE)`
+
 ### Bug Fixes (P0 — Recurring)
 
 #### 1. MiniMax API Routing: sk-cp- keys returning HTTP 401
