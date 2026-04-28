@@ -1,5 +1,55 @@
 # Aurelius v2 Changelog
 
+## [Unreleased] — 2026-04-28
+
+### Bug Fixes (P0 — Recurring)
+
+#### 1. MiniMax API Routing: sk-cp- keys returning HTTP 401
+**Root Cause:** `executeAnthropicChatCompletion()` (ChatRepository.kt:381) incorrectly called `getAnthropicUrl()` which routes to `https://api.minimax.io/anthropic/v1/messages` — an endpoint that doesn't accept MiniMax Coding Plan keys. MiniMax sk-cp- keys authenticate at the **same endpoint** as standard keys: `/v1/chat/completions`.
+
+**Affected Code Path:**
+```
+ChatRepository.sendMessage()
+  → executeChatCompletion() [line 302]
+    → if (codingPlanKey.isNotEmpty()) → executeAnthropicChatCompletion()
+      → getApiUrl() ✅ FIXED (was getAnthropicUrl() ❌)
+```
+
+**Files Changed:**
+- `ChatRepository.kt` — line 381: `getApiUrl()` replaces `getAnthropicUrl()`
+- `ChatRepository.kt` — `generateSummary()` also fixed (was using `getAnthropicUrl()`)
+- `ChatScreen.kt` — line 301-308: Added `KeyboardActions(onSend = {...})` to wire Enter key to sendMessage
+
+**Prevention:** 
+- `getAnthropicUrl()` is now unused and defined for reference only. Any future code that sends to a non-MiniMax endpoint must be verified against MiniMax documentation.
+- API routing should have integration tests that verify both key types (`sk-cp-` and standard hex) receive valid 200 responses.
+
+#### 2. Enter Key Not Sending Message
+**Root Cause:** `KeyboardOptions(imeAction = ImeAction.Send)` was set but no `KeyboardActions` callback was attached. Enter key did nothing.
+
+**Fix:** `ChatScreen.kt` lines 301-308:
+```kotlin
+keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+keyboardActions = KeyboardActions(
+    onSend = {
+        if (uiState.inputText.isNotEmpty() && !uiState.isLoading) {
+            viewModel.sendMessage()
+        }
+    }
+),
+```
+
+#### 3. App Data Cleared After Testing
+**Note:** `adb shell pm clear com.greyloop.aurelius` wipes the EncryptedSharedPreferences storage. Always re-enter API key after `pm clear`. The key is stored securely and never hardcoded.
+
+### Verified Working (2026-04-28)
+- API key `sk-cp-tm5...` entered via Settings UI → Coding Plan Key field → clipboard paste → Save
+- Chat opened, "Hello" sent → AI responded in sage-green bubble with "Hello! How can I help you today?"
+- AI reasoning block visible (MiniMax think mechanism working)
+- Screenshot: `C:/Users/luka/AppData/Local/Temp/chat_open.png`
+
+---
+
 ## [2026-04-26] Sprint: Ground-up Redesign
 
 ### Milestone 1: Architecture Audit (2026-04-26)

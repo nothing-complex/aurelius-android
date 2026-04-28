@@ -138,88 +138,45 @@ class ChatRepository(
 
         return try {
             val apiKey = secureStorage.codingPlanKey.ifEmpty { secureStorage.minimaxApiKey }
-            val useAnthropic = secureStorage.codingPlanKey.isNotEmpty()
 
-            if (useAnthropic) {
-                val anthropicMessages = listOf(
-                    AnthropicMessage(
-                        role = "user",
-                        content = "You are a summarization assistant. Create a brief 2-3 sentence summary of the conversation below.\n\nSummarize this conversation briefly:\n$conversationText"
-                    )
-                )
-                val summaryRequest = AnthropicRequest(
-                    model = "MiniMax-M2.7",
-                    messages = anthropicMessages,
-                    max_tokens = 200,
-                    system = "You are a helpful assistant."
-                )
-                val requestBody = json.encodeToString(
-                    AnthropicRequest.serializer(),
-                    summaryRequest
-                ).toRequestBody("application/json".toMediaType())
-
-                val request = Request.Builder()
-                    .url(getAnthropicUrl())
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("anthropic-version", "2023-06-01")
-                    .post(requestBody)
-                    .build()
-
-                var result: String? = null
-                withContext(Dispatchers.IO) {
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) return@withContext
-                        val body = response.body?.string() ?: "{}"
-                        val anthropicResp = json.decodeFromString<AnthropicResponse>(body)
-                        result = anthropicResp.content
-                            .filter { it.type == "text" }
-                            .joinToString("") { it.text ?: "" }
-                            .take(200)
-                    }
-                }
-                result
-            } else {
-                val summaryRequest = ChatCompletionRequest(
-                    model = "MiniMax-M2.7",
-                    messages = listOf(
-                        ApiMessage(
-                            role = "system",
-                            content = "You are a summarization assistant. Create a brief 2-3 sentence summary of the conversation above."
-                        ),
-                        ApiMessage(
-                            role = "user",
-                            content = "Summarize this conversation briefly:\n$conversationText"
-                        )
+            val summaryRequest = ChatCompletionRequest(
+                model = "MiniMax-M2.7",
+                messages = listOf(
+                    ApiMessage(
+                        role = "system",
+                        content = "You are a summarization assistant. Create a brief 2-3 sentence summary of the conversation above."
                     ),
-                    tools = emptyList(),
-                    stream = false
-                )
+                    ApiMessage(
+                        role = "user",
+                        content = "Summarize this conversation briefly:\n$conversationText"
+                    )
+                ),
+                tools = emptyList(),
+                stream = false
+            )
 
-                val requestBody = json.encodeToString(
-                    ChatCompletionRequest.serializer(),
-                    summaryRequest
-                ).toRequestBody("application/json".toMediaType())
+            val requestBody = json.encodeToString(
+                ChatCompletionRequest.serializer(),
+                summaryRequest
+            ).toRequestBody("application/json".toMediaType())
 
+            val request = Request.Builder()
+                .url(getApiUrl())
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build()
 
-                val request = Request.Builder()
-                    .url(getApiUrl())
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .addHeader("Content-Type", "application/json")
-                    .post(requestBody)
-                    .build()
-
-                var result: String? = null
-                withContext(Dispatchers.IO) {
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) return@withContext
-                        val body = response.body?.string() ?: "{}"
-                        val chatResponse = json.decodeFromString<ChatCompletionResponse>(body)
-                        result = chatResponse.choices.firstOrNull()?.message?.content?.take(200)
-                    }
+            var result: String? = null
+            withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext
+                    val body = response.body?.string() ?: "{}"
+                    val chatResponse = json.decodeFromString<ChatCompletionResponse>(body)
+                    result = chatResponse.choices.firstOrNull()?.message?.content?.take(200)
                 }
-                result
             }
+            result
         } catch (e: Exception) {
             Log.e(TAG, "generateSummary error", e)
             null
@@ -395,38 +352,35 @@ class ChatRepository(
     }
 
     /**
-     * Execute chat using Anthropic API endpoint (for codingPlanKey / sk-cp- keys).
+     * Execute chat using MiniMax API endpoint.
+     * Both standard MiniMax keys and Coding Plan keys (sk-cp-) authenticate via the same endpoint.
      * Note: Tools are not supported on this path - they are stripped.
      */
     private suspend fun executeAnthropicChatCompletion(
         messages: List<ApiMessage>
     ): ChatCompletionResponse {
-        // Extract system message if present
-        val systemContent = messages.firstOrNull { it.role == "system" }?.content
+        // Filter out system message (not supported in this path)
         val conversationMessages = messages.filter { it.role != "system" }
 
-        // Convert to Anthropic message format
-        val anthropicMessages = conversationMessages.map { msg ->
-            AnthropicMessage(role = msg.role, content = msg.content)
-        }
+        // Use codingPlanKey if available, otherwise minimaxApiKey
+        val apiKey = secureStorage.codingPlanKey.ifEmpty { secureStorage.minimaxApiKey }
 
-        val request = AnthropicRequest(
+        val request = ChatCompletionRequest(
             model = "MiniMax-M2.7",
-            messages = anthropicMessages,
-            max_tokens = 4096,
-            system = systemContent
+            messages = conversationMessages,
+            tools = null, // Tools stripped for this path
+            stream = false
         )
 
         val requestBody = json.encodeToString(
-            AnthropicRequest.serializer(),
+            ChatCompletionRequest.serializer(),
             request
         ).toRequestBody("application/json".toMediaType())
 
         val requestBuilder = Request.Builder()
-            .url(getAnthropicUrl())
-            .addHeader("Authorization", "Bearer ${secureStorage.codingPlanKey}")
+            .url(getApiUrl())
+            .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("Content-Type", "application/json")
-            .addHeader("anthropic-version", "2023-06-01")
             .post(requestBody)
 
         return withContext(Dispatchers.IO) {
@@ -436,39 +390,10 @@ class ChatRepository(
                     throw Exception("HTTP ${response.code}: $errorBody")
                 }
                 val body = response.body?.string() ?: "{}"
-                // Check for error JSON before treating as success (Anthropic errors have "error" field)
                 if (body.contains("\"error\"")) {
                     throw Exception("API Error: $body")
                 }
-                val anthropicResp = json.decodeFromString<AnthropicResponse>(body)
-
-                // Convert Anthropic response back to OpenAI ChatCompletionResponse format
-                // for compatibility with processResponse()
-                val textContent = anthropicResp.content
-                    .filter { it.type == "text" }
-                    .joinToString("") { it.text ?: "" }
-
-                ChatCompletionResponse(
-                    id = anthropicResp.id,
-                    choices = listOf(
-                        Choice(
-                            index = 0,
-                            message = ResponseMessage(
-                                role = "assistant",
-                                content = textContent,
-                                toolCalls = null
-                            ),
-                            finishReason = anthropicResp.stopReason
-                        )
-                    ),
-                    usage = anthropicResp.usage?.let {
-                        Usage(
-                            promptTokens = it.inputTokens,
-                            completionTokens = it.outputTokens,
-                            totalTokens = it.inputTokens + it.outputTokens
-                        )
-                    }
-                )
+                json.decodeFromString(body)
             }
         }
     }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,19 +39,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.Summarize
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -65,9 +64,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -81,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -145,81 +142,96 @@ fun ChatScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = uiState.chat?.title ?: "New Chat",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        if (uiState.chat != null) {
-                            Text(
-                                text = uiState.currentPersona.name,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                                modifier = Modifier.clickable { viewModel.togglePersonaSelector() }
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    // Overflow menu
-                    var showOverflowMenu by androidx.compose.runtime.mutableStateOf(false)
-                    IconButton(onClick = { showOverflowMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                    }
-                    DropdownMenu(
-                        expanded = showOverflowMenu,
-                        onDismissRequest = { showOverflowMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Summarize conversation") },
-                            onClick = {
-                                viewModel.onGenerateSummary()
-                                showOverflowMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.Summarize, contentDescription = null)
-                            }
-                        )
-                    }
+    // Swipe-back state
+    var offsetX by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    val swipeThreshold = 120.dp
 
-                    // Persona selector dropdown
-                    DropdownMenu(
-                        expanded = uiState.showPersonaSelector,
-                        onDismissRequest = { viewModel.togglePersonaSelector() }
-                    ) {
-                        DefaultPersonas.all.forEach { persona ->
-                            DropdownMenuItem(
-                                text = { Text(persona.name) },
-                                onClick = { viewModel.onPersonaSelected(persona) },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Person, contentDescription = null)
-                                }
-                            )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (offsetX > swipeThreshold.toPx()) {
+                            onBack()
                         }
+                        offsetX = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        offsetX = (offsetX + dragAmount).coerceAtLeast(0f)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-            )
+            }
+            .graphicsLayer { translationX = offsetX * 0.3f }
+    ) {
+        // Floating "New chat" pill — positioned top-left, minimal
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+            onClick = onBack
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = uiState.chat?.title ?: "New chat",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-    ) { padding ->
+
+        // Persona selector — floating pill, top-right
+        if (uiState.chat != null) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 8.dp, top = 8.dp)
+                    .clickable { viewModel.togglePersonaSelector() },
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
+            ) {
+                Text(
+                    text = uiState.currentPersona.name,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+
+            // Persona selector dropdown
+            DropdownMenu(
+                expanded = uiState.showPersonaSelector,
+                onDismissRequest = { viewModel.togglePersonaSelector() }
+            ) {
+                DefaultPersonas.all.forEach { persona ->
+                    DropdownMenuItem(
+                        text = { Text(persona.name) },
+                        onClick = { viewModel.onPersonaSelected(persona) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Person, contentDescription = null)
+                        }
+                    )
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .imePadding()
         ) {
             // Messages list — single-column centered with generous vertical rhythm
@@ -287,6 +299,13 @@ fun ChatScreen(
                     shape = RoundedCornerShape(24.dp),
                     enabled = !uiState.isLoading,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(
+                        onSend = {
+                            if (uiState.inputText.isNotEmpty() && !uiState.isLoading) {
+                                viewModel.sendMessage()
+                            }
+                        }
+                    ),
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -312,7 +331,10 @@ fun ChatScreen(
                 }
             }
         }
-        SnackbarHost(hostState = snackbarHostState)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
