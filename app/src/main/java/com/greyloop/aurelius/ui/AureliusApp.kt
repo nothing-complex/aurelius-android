@@ -86,6 +86,11 @@ fun AureliusApp(
                                             },
                                             onNewChat = { chatId ->
                                                 navController.navigate("chat/$chatId")
+                                            },
+                                            onSettingsClick = {
+                                                scope.launch {
+                                                    pagerState.animateScrollToPage(SETTINGS_PAGE)
+                                                }
                                             }
                                         )
                                     }

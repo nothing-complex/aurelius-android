@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,6 +74,7 @@ private val COLLAPSED_FONT = 16.sp
 fun HomeScreen(
     onChatClick: (String) -> Unit,
     onNewChat: (String) -> Unit,
+    onSettingsClick: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -210,14 +212,33 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Aurelius",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = if (isScrollingDown.floatValue > 0.5f) COLLAPSED_FONT else EXPANDED_FONT
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left spacer for balance
+                    Spacer(modifier = Modifier.width(48.dp))
+                    // App title
+                    Text(
+                        text = "Aurelius",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontSize = if (isScrollingDown.floatValue > 0.5f) COLLAPSED_FONT else EXPANDED_FONT
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    // Settings icon
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
 
