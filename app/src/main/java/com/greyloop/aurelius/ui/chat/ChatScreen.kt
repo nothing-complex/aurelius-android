@@ -244,14 +244,19 @@ fun ChatScreen(
                 items(uiState.messages, key = { it.id }) { message ->
                     MessageBubble(
                         message = message,
-                        onBranchClick = { messageId -> viewModel.onBranchConversation(messageId) }
+                        onBranchClick = { messageId -> viewModel.onBranchConversation(messageId) },
+                        showThinkingTags = uiState.showThinkingTags
                     )
                 }
 
                 // Streaming indicator
                 if (uiState.isLoading && uiState.streamingContent.isNotEmpty()) {
                     item {
-                        StreamingMessageBubble(content = uiState.streamingContent)
+                        val thinkingContent = if (uiState.showThinkingTags) extractThinkingContent(uiState.streamingContent) else null
+                        StreamingMessageBubble(
+                            content = stripThinkingContent(uiState.streamingContent),
+                            thinkingContent = thinkingContent
+                        )
                     }
                 }
 
@@ -342,7 +347,8 @@ fun ChatScreen(
 @Composable
 private fun MessageBubble(
     message: Message,
-    onBranchClick: (String) -> Unit
+    onBranchClick: (String) -> Unit,
+    showThinkingTags: Boolean = true
 ) {
     val isUser = message.role == Role.USER
 
@@ -391,6 +397,15 @@ private fun MessageBubble(
             modifier = Modifier.widthIn(max = 280.dp),
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
+            // Thinking tag footnote (Ghost Footnote style)
+            if (!isUser && showThinkingTags) {
+                val thinkingContent = extractThinkingContent(message.content)
+                if (thinkingContent != null) {
+                    ThinkingTagFootnote(thinkingContent = thinkingContent)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
             Surface(
                 shape = RoundedCornerShape(
                     topStart = 16.dp,
@@ -414,8 +429,9 @@ private fun MessageBubble(
                             style = MaterialTheme.typography.bodyMedium
                         )
                     } else {
+                        val displayContent = stripThinkingContent(message.content)
                         MarkdownText(
-                            text = message.content,
+                            text = displayContent,
                             modifier = Modifier,
                             color = Color.White
                         )
@@ -469,8 +485,117 @@ private fun MessageBubble(
     }
 }
 
+/**
+ * Extracts thinking content from message content.
+ * Handles both XML format (<think>/</think>) and HTML-like format (<think>/</think>).
+ * Also handles 2-newline and 3-newline marker formats.
+ * Returns null if no thinking content is found.
+ */
+private fun extractThinkingContent(content: String): String? {
+    // Try XML format first: <think> ... </think>
+    val xmlStart2 = "\n\n<think>"
+    val xmlStart3 = "\n\n\n<think>"
+    val xmlEnd = "</think>"
+
+    val xmlIdx2 = content.indexOf(xmlStart2)
+    val xmlIdx3 = content.indexOf(xmlStart3)
+    val xmlIdx = if (xmlIdx2 >= 0 && (xmlIdx3 < 0 || xmlIdx2 < xmlIdx3)) xmlIdx2 else xmlIdx3
+    val xmlStartLen = if (xmlIdx2 >= 0 && (xmlIdx3 < 0 || xmlIdx2 < xmlIdx3)) xmlStart2.length else xmlStart3.length
+
+    if (xmlIdx >= 0) {
+        val endIdx = content.indexOf(xmlEnd, xmlIdx)
+        if (endIdx >= 0) {
+            return content.substring(xmlIdx + xmlStartLen, endIdx).trim()
+        }
+    }
+
+    // Try HTML-like format: <think>...</think>
+    val htmlStart = "<think>"
+    val htmlEnd = "</think>"
+    val htmlIdx = content.indexOf(htmlStart)
+    if (htmlIdx >= 0) {
+        val endIdx = content.indexOf(htmlEnd, htmlIdx)
+        if (endIdx >= 0) {
+            return content.substring(htmlIdx + htmlStart.length, endIdx).trim()
+        }
+    }
+
+    return null
+}
+
+/**
+ * Strips thinking content from message content for display.
+ * Handles XML format (<think>/</think>) and HTML-like format (<think>/</think>).
+ */
+private fun stripThinkingContent(content: String): String {
+    var result = content
+
+    // Strip XML format: <think> ... </think> (2-newline or 3-newline variants)
+    val xmlStart2 = "\n\n<think>"
+    val xmlStart3 = "\n\n\n<think>"
+    val xmlEnd = "</think>"
+
+    val xmlIdx2 = result.indexOf(xmlStart2)
+    val xmlIdx3 = result.indexOf(xmlStart3)
+    val xmlIdx = if (xmlIdx2 >= 0 && (xmlIdx3 < 0 || xmlIdx2 < xmlIdx3)) xmlIdx2 else xmlIdx3
+    val xmlStartLen = if (xmlIdx2 >= 0 && (xmlIdx3 < 0 || xmlIdx2 < xmlIdx3)) xmlStart2.length else xmlStart3.length
+
+    if (xmlIdx >= 0) {
+        val endIdx = result.indexOf(xmlEnd, xmlIdx)
+        if (endIdx >= 0) {
+            val before = result.substring(0, xmlIdx)
+            val after = result.substring(endIdx + xmlEnd.length).trimStart('\n')
+            result = (before + after).trim()
+        }
+    }
+
+    // Strip HTML-like format: <think>...</think>
+    val htmlStart = "<think>"
+    val htmlEnd = "</think>"
+    val htmlIdx = result.indexOf(htmlStart)
+    if (htmlIdx >= 0) {
+        val endIdx = result.indexOf(htmlEnd, htmlIdx)
+        if (endIdx >= 0) {
+            val before = result.substring(0, htmlIdx)
+            val after = result.substring(endIdx + htmlEnd.length).trimStart('\n')
+            result = (before + after).trim()
+        }
+    }
+
+    return result
+}
+
+/**
+ * Ghost Footnote — displays AI reasoning above responses.
+ * Style: 8dp above AI bubble, 40%/50% opacity, Source Sans 3 italic 12sp,
+ * LetterSage at 60% opacity, dashed top border in ScrollBorder.
+ */
 @Composable
-private fun StreamingMessageBubble(content: String) {
+private fun ThinkingTagFootnote(thinkingContent: String) {
+    val letterSageColor = com.greyloop.aurelius.ui.theme.LetterSage
+    val scrollBorderColor = com.greyloop.aurelius.ui.theme.ScrollBorder
+
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = letterSageColor.copy(alpha = 0.4f),
+        border = BorderStroke(1.dp, scrollBorderColor)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+            Text(
+                text = thinkingContent,
+                style = TextStyle(
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                    fontSize = androidx.compose.ui.unit.TextUnit(12f, androidx.compose.ui.unit.TextUnitType.Sp),
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    color = letterSageColor.copy(alpha = 0.6f)
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun StreamingMessageBubble(content: String, thinkingContent: String? = null) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
@@ -491,22 +616,28 @@ private fun StreamingMessageBubble(content: String) {
         }
         Spacer(modifier = Modifier.width(8.dp))
 
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = content,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Streaming...",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+        Column {
+            if (thinkingContent != null) {
+                ThinkingTagFootnote(thinkingContent = thinkingContent)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = content,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Streaming...",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

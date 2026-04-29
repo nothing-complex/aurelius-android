@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
@@ -30,6 +32,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -139,12 +142,14 @@ fun SettingsScreen(
                             .focusable()
                             .fillMaxWidth(),
                         placeholder = { Text("Enter your MiniMax API key") },
-                        visualTransformation = if (showApiKey) {
-                            VisualTransformation.None
-                        } else {
-                            PasswordVisualTransformation()
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = VisualTransformation.None,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { /* keep focus, dismiss keyboard */ }
+                        ),
                         trailingIcon = {
                             IconButton(onClick = { showApiKey = !showApiKey }) {
                                 Icon(
@@ -185,12 +190,14 @@ fun SettingsScreen(
                             .focusable()
                             .fillMaxWidth(),
                         placeholder = { Text("Enter your Coding Plan key") },
-                        visualTransformation = if (showCodingPlanKey) {
-                            VisualTransformation.None
-                        } else {
-                            PasswordVisualTransformation()
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = VisualTransformation.None,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { /* keep focus, dismiss keyboard */ }
+                        ),
                         trailingIcon = {
                             IconButton(onClick = { showCodingPlanKey = !showCodingPlanKey }) {
                                 Icon(
@@ -361,6 +368,44 @@ fun SettingsScreen(
                             onClick = { viewModel.onThemeModeChange(SecureStorage.THEME_DARK) }
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // AI Responses Section
+            Text(
+                text = "AI Responses",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Show Thinking Tags", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Display AI reasoning above responses",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = uiState.showThinkingTags,
+                        onCheckedChange = viewModel::onShowThinkingTagsChange
+                    )
                 }
             }
 

@@ -5,7 +5,7 @@
 ### Features
 
 #### 1. Show Thinking Tags Setting
-AI reasoning (`)can now be toggled on/off via Settings → AI Responses → Show Thinking Tags. When enabled, thinking content displays as a faint italic footnote ABOVE the AI response bubble with a dashed border in LetterSage color.
+AI reasoning can now be toggled on/off via Settings → AI Responses → Show Thinking Tags. When enabled, thinking content displays as a faint italic footnote ABOVE the AI response bubble with a dashed border in LetterSage color.
 
 **Files Changed:**
 - `SecureStorage.kt` — added `showThinkingTags` Boolean preference
@@ -64,9 +64,10 @@ keyboardActions = KeyboardActions(
 
 ### Verified Working (2026-04-28)
 - API key `sk-cp-tm5...` entered via Settings UI → Coding Plan Key field → clipboard paste → Save
-- Chat opened, "Hello" sent → AI responded in sage-green bubble with "Hello! How can I help you today?"
-- AI reasoning block visible (MiniMax think mechanism working)
-- Screenshot: `C:/Users/luka/AppData/Local/Temp/chat_open.png`
+- Thinking tags ON: displays as styled footnote ABOVE AI bubble (Screenshot: `thinking_v5_on.png`)
+- Thinking tags OFF: thinking content fully hidden, clean bubble (Screenshot: `thinking_v5_off.png`)
+- Chat working: AI responds with "Hello! How can I help you today?" / "I'm here and working! 😊"
+- Enter key sends message: CONFIRMED WORKING
 
 ---
 
