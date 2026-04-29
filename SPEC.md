@@ -58,6 +58,7 @@
 3. **Conversation Branching** - Visual tree navigation for branching conversations
 4. **AI Summaries** - Generate conversation summaries (key differentiator)
 5. **Persona System** - Character personas with avatars
+6. **Show Thinking Tags** - Toggle to display AI reasoning as styled footnote above response bubble (Settings → AI Responses)
 
 ### MiniMax MCP Tools
 1. **text_to_audio** - Voice AI responses with emotion control
