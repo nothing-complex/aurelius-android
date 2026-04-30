@@ -1,8 +1,8 @@
 # Aurelius — Auto-Generated Documentation
 
-> Auto-updated: 2026-04-29
+> Auto-updated: 2026-05-01
 
-## Bug Fixes Applied (2026-04-30)
+## Bug Fixes Applied (2026-05-01)
 
 ### 1. MediaResult Pattern — Image URL Rendering (ChatRepository.kt)
 - **Issue**: Image generation returned URL as raw text `[Image generated: https://xxx.aliyuncs.com/...]` instead of rendered image
@@ -156,33 +156,21 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 ## Current Status
 
 - **Status**: WORKING
-- **Milestone 14 UI/UX**: Research complete, design documented, implementation pending
-- **Navigation**: Fixed (NavHost always present, commit b7a963b)
-- **AI chat**: WORKING with sk-cp- API key
-- **Error handling**: Properly surfaces error messages via snackbar
-- **Build verified**: app-debug.apk (19.7 MB) at `app/build/outputs/apk/debug/`
-- **Model**: MiniMax-M2.7
-- **API key format**: sk-cp- keys route to Anthropic `/v1/messages` endpoint via `executeAnthropicChatCompletion`
-- **Endpoint**: `https://api.minimax.io/anthropic/v1/messages` (global) or `https://api.minimax.chat/anthropic/v1/messages` (China)
-
----
-
-## Current Status
-
-- **Status**: WORKING
 - **Crash Fix (2026-04-29)**: LazyColumn duplicate key + ViewModel race condition resolved
-- **Image Gen Fix (2026-04-29)**: Added response_format param, API returns valid URLs
+- **Media Fix (2026-04-30)**: TTS, music, image generation all FIXED via runBlocking pattern
 - **Thinking Tags (2026-04-29)**: Feature complete with Settings toggle
-- **AI chat**: WORKING with sk-cp- API key (coding plan key routes to /v1/chat/completions)
-- **Build verified**: app-debug.apk at `app/build/outputs/apk/debug/`
-- **Screenshots**: All test screenshots in `screenshots/` folder (1008 files)
+- **AI chat**: WORKING with sk-cp- API key
+- **Build verified**: app-debug.apk (19.7 MB) at `app/build/outputs/apk/debug/`
+- **Physical device**: APK pushed 2026-05-01, pending manual verification
 - **Model**: MiniMax-M2.7
+- **Screenshots**: All test screenshots in `screenshots/` folder
 
-## Known Issues (as of 2026-04-30)
+## Known Issues (as of 2026-05-01)
 
-- ✅ TTS AudioPlayerBubble: FIXED — runBlocking applied at line 530
-- ✅ Music generation kotlin.Unit: FIXED — runBlocking applied at line 556
-- ⚠️ Verification blocked: ADB keyboard input broken on emulator — manual test required on physical device
+- ✅ TTS AudioPlayerBubble: FIXED — runBlocking applied at line 530 (pending physical device verification)
+- ✅ Music generation kotlin.Unit: FIXED — runBlocking applied at line 556 (pending physical device verification)
+- ✅ Image generation: FIXED — MediaResult + runBlocking at line 512 (verified via screenshot)
+- ⚠️ Manual test required on physical device for TTS and music generation
 
 ## Known Issues
 
