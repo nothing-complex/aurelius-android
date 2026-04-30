@@ -503,11 +503,13 @@ class ChatRepository(
                 onToolStarted?.invoke(ToolExecutor.TOOL_GENERATE_IMAGE)
                 try {
                     var capturedUrl: String? = null
-                    toolExecutor.executeImageGeneration(
-                        prompt = prompt,
-                        onSuccess = { url -> capturedUrl = url },
-                        onError = { }
-                    )
+                    runBlocking {
+                        toolExecutor.executeImageGeneration(
+                            prompt = prompt,
+                            onSuccess = { url -> capturedUrl = url },
+                            onError = { }
+                        )
+                    }
                     onToolComplete?.invoke(ToolExecutor.TOOL_GENERATE_IMAGE)
                     return MediaResult(content = content, imageUrl = capturedUrl?.replaceFirst("http://", "https://"))
                 } catch (e: Exception) {
@@ -526,11 +528,13 @@ class ChatRepository(
                 onToolStarted?.invoke(ToolExecutor.TOOL_TEXT_TO_AUDIO)
                 try {
                     var capturedUrl: String? = null
-                    toolExecutor.executeTextToAudio(
-                        text = text,
-                        onSuccess = { url -> capturedUrl = url },
-                        onError = { }
-                    )
+                    runBlocking {
+                        toolExecutor.executeTextToAudio(
+                            text = text,
+                            onSuccess = { url -> capturedUrl = url },
+                            onError = { }
+                        )
+                    }
                     onToolComplete?.invoke(ToolExecutor.TOOL_TEXT_TO_AUDIO)
                     return MediaResult(content = content, audioUrl = capturedUrl?.replaceFirst("http://", "https://"))
                 } catch (e: Exception) {
@@ -549,11 +553,13 @@ class ChatRepository(
                 onToolStarted?.invoke(ToolExecutor.TOOL_MUSIC_GENERATION)
                 try {
                     var capturedUrl: String? = null
-                    toolExecutor.executeMusicGeneration(
-                        prompt = prompt,
-                        onSuccess = { url -> capturedUrl = url },
-                        onError = { }
-                    )
+                    runBlocking {
+                        toolExecutor.executeMusicGeneration(
+                            prompt = prompt,
+                            onSuccess = { url -> capturedUrl = url },
+                            onError = { }
+                        )
+                    }
                     onToolComplete?.invoke(ToolExecutor.TOOL_MUSIC_GENERATION)
                     return MediaResult(content = content, audioUrl = capturedUrl?.replaceFirst("http://", "https://"))
                 } catch (e: Exception) {

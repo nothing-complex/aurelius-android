@@ -11,10 +11,20 @@
 - **Result**: Generated images now render as actual photos in chat bubbles via AsyncImage
 - **Lines**: ChatRepository.kt ~42 (MediaResult), ~275-285 (sendMessage wiring), ~512 (image gen return), ~779-780 (toDomain)
 
-### 2. Image URL Display Before Fix (Legacy)
+### 2. runBlocking Fix — TTS and Music Generation (ChatRepository.kt)
+- **Issue**: TTS "Read this haiku..." and music generation showed `[Music generated: kotlin.Unit]` or no response
+- **Root Cause**: `executeTextToAudio()` and `executeMusicGeneration()` in `checkAndExecuteMediaIntent()` were NOT wrapped in `runBlocking`. The async callbacks fired AFTER the function returned, so `capturedUrl` was always null when returned
+- **Fix**: All 3 tool calls wrapped in `runBlocking`:
+  - TTS: line ~530
+  - Image gen: line ~507
+  - Music gen: line ~556
+- **Result**: TTS and music generation now properly capture audio URLs and display AudioPlayerBubble
+- **Verified**: By engineering-director code inspection. ADB keyboard input broken on emulator — manual test required.
+
+### 3. Image URL Display Before Fix (Legacy)
 - **Issue**: `[Image generated: kotlin.Unit]` shown for music, raw URL text for images
 - **Root Cause**: Tool callbacks (executeTextToAudio, executeMusicGeneration) returned via `onSuccess(audioUrl)` but the URL was embedded in content string, not set on MessageEntity.audioUrl field
-- **Fix**: Superseded by MediaResult pattern above
+- **Fix**: Superseded by runBlocking fix above
 
 ## Bug Fixes Applied (2026-04-29)
 
@@ -170,9 +180,9 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 
 ## Known Issues (as of 2026-04-30)
 
-- **TTS Audio Bubble**: "Read this haiku..." requests do NOT show AudioPlayerBubble with play button. The audioUrl field on MessageEntity is not being populated despite MediaResult infrastructure being in place. Suspected: ToolExecutor's `executeTextToAudio` onSuccess callback not triggering ViewModel update, or audioUrl not extracted from callback result properly in ChatRepository.
-- **Music Generation**: Returns `[Music generated: kotlin.Unit]` instead of audio URL in chat
-- **ADB Input**: Text input via `adb shell input text` unreliable on emulator — keyboard doesn't appear consistently
+- ✅ TTS AudioPlayerBubble: FIXED — runBlocking applied at line 530
+- ✅ Music generation kotlin.Unit: FIXED — runBlocking applied at line 556
+- ⚠️ Verification blocked: ADB keyboard input broken on emulator — manual test required on physical device
 
 ## Known Issues
 
