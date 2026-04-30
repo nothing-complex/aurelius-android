@@ -24,10 +24,10 @@ import com.greyloop.aurelius.domain.model.DefaultPersonas
 import com.greyloop.aurelius.domain.model.Message
 import com.greyloop.aurelius.domain.model.Role
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -36,6 +36,15 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+
+private data class MediaResult(
+    val content: String,
+    val imageUrl: String? = null,
+    val audioUrl: String? = null,
+    val videoUrl: String? = null
+)
 
 class ChatRepository(
     private val chatDao: ChatDao,
@@ -46,6 +55,7 @@ class ChatRepository(
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+        encodeDefaults = true
     }
 
     protected open fun createClient(): OkHttpClient {
@@ -202,7 +212,9 @@ class ChatRepository(
         content: String,
         onStreamingUpdate: (String) -> Unit,
         onComplete: (Message) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onToolStarted: ((String) -> Unit)?,
+        onToolComplete: ((String) -> Unit)?
     ) = withContext(Dispatchers.IO) {
         try {
             // Save user message
@@ -234,7 +246,8 @@ class ChatRepository(
             val apiMessages = listOf(personaMessage) + history.map { msg ->
                 ApiMessage(
                     role = msg.role,
-                    content = msg.content
+                    content = msg.content,
+                    toolCallId = msg.toolCallId
                 )
             }
 
@@ -256,14 +269,20 @@ class ChatRepository(
             )
 
             // Process response (handle tool calls if any)
-            val finalContent = processResponse(response, chatId, onError)
+            val finalContent = processResponse(response, chatId, onError, onToolStarted, onToolComplete)
+
+            // Fallback: check for media intent keywords and execute directly
+            val mediaResult = checkAndExecuteMediaIntent(finalContent, onError, onToolStarted, onToolComplete)
 
             // Save assistant message
             val assistantMessage = MessageEntity(
                 id = UUID.randomUUID().toString(),
                 chatId = chatId,
                 role = "assistant",
-                content = finalContent,
+                content = mediaResult.content,
+                imageUrl = mediaResult.imageUrl,
+                audioUrl = mediaResult.audioUrl,
+                videoUrl = mediaResult.videoUrl,
                 timestamp = System.currentTimeMillis()
             )
             messageDao.insert(assistantMessage)
@@ -273,7 +292,7 @@ class ChatRepository(
                 chatDao.update(c.copy(updatedAt = System.currentTimeMillis()))
             }
 
-            onStreamingUpdate(finalContent)
+            onStreamingUpdate(mediaResult.content)
             onComplete(assistantMessage.toDomain())
 
             // Auto-summary trigger: check if 10+ messages and no summary exists
@@ -305,7 +324,7 @@ class ChatRepository(
     ): ChatCompletionResponse {
         // Use Anthropic endpoint if codingPlanKey is set (sk-cp- keys)
         if (secureStorage.codingPlanKey.isNotEmpty()) {
-            return executeAnthropicChatCompletion(messages)
+            return executeAnthropicChatCompletion(messages, toolDefinitions)
         }
 
         // Validate minimaxApiKey is available before making network call
@@ -354,10 +373,10 @@ class ChatRepository(
     /**
      * Execute chat using MiniMax API endpoint.
      * Both standard MiniMax keys and Coding Plan keys (sk-cp-) authenticate via the same endpoint.
-     * Note: Tools are not supported on this path - they are stripped.
      */
     private suspend fun executeAnthropicChatCompletion(
-        messages: List<ApiMessage>
+        messages: List<ApiMessage>,
+        toolDefinitions: List<ToolDefinition>
     ): ChatCompletionResponse {
         // Filter out system message (not supported in this path)
         val conversationMessages = messages.filter { it.role != "system" }
@@ -368,7 +387,7 @@ class ChatRepository(
         val request = ChatCompletionRequest(
             model = "MiniMax-M2.7",
             messages = conversationMessages,
-            tools = null, // Tools stripped for this path
+            tools = toolDefinitions,
             stream = false
         )
 
@@ -401,7 +420,9 @@ class ChatRepository(
     private suspend fun processResponse(
         response: ChatCompletionResponse,
         chatId: String,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onToolStarted: ((String) -> Unit)?,
+        onToolComplete: ((String) -> Unit)?
     ): String {
         val choice = response.choices.firstOrNull() ?: return ""
         var finalContent = choice.message.content
@@ -417,22 +438,28 @@ class ChatRepository(
                     break
                 }
 
-                val result = executeToolCall(toolCall.function, onError)
+                val toolCallId = toolCall.id
+                val result = executeToolCall(toolCall.function, onError, onToolStarted, onToolComplete)
                 if (result != null) {
-                    // Add tool result as assistant message
+                    // Add tool result as tool message
                     val toolMessage = MessageEntity(
                         id = UUID.randomUUID().toString(),
                         chatId = chatId,
-                        role = "assistant",
+                        role = "tool",
                         content = result,
-                        timestamp = System.currentTimeMillis()
+                        timestamp = System.currentTimeMillis(),
+                        toolCallId = toolCallId
                     )
                     messageDao.insert(toolMessage)
 
                     // Get updated history and continue
                     val history = messageDao.getMessagesList(chatId)
                     val apiMessages = history.map { msg ->
-                        ApiMessage(role = msg.role, content = msg.content)
+                        ApiMessage(
+                            role = msg.role,
+                            content = msg.content,
+                            toolCallId = msg.toolCallId
+                        )
                     }
 
                     try {
@@ -452,9 +479,117 @@ class ChatRepository(
         return finalContent
     }
 
+    /**
+     * Fallback media intent detection — checks content for media keywords and
+     * directly executes the appropriate tool if keywords are found.
+     * This handles cases where AI mentions media intent in text without tool call.
+     */
+    private suspend fun checkAndExecuteMediaIntent(
+        content: String,
+        onError: (String) -> Unit,
+        onToolStarted: ((String) -> Unit)?,
+        onToolComplete: ((String) -> Unit)?
+    ): MediaResult {
+        val lowerContent = content.lowercase()
+
+        // Image generation intent
+        if (lowerContent.contains("generate an image") ||
+            lowerContent.contains("creating an image") ||
+            lowerContent.contains("I'll create an image") ||
+            lowerContent.contains("I'll generate an image")) {
+            // Extract prompt from content (look for quoted prompt or descriptive text after keyword)
+            val prompt = extractPromptAfterKeyword(content, listOf("generate an image", "creating an image", "I'll create an image", "I'll generate an image"))
+            if (prompt.isNotEmpty()) {
+                onToolStarted?.invoke(ToolExecutor.TOOL_GENERATE_IMAGE)
+                try {
+                    var capturedUrl: String? = null
+                    toolExecutor.executeImageGeneration(
+                        prompt = prompt,
+                        onSuccess = { url -> capturedUrl = url },
+                        onError = { }
+                    )
+                    onToolComplete?.invoke(ToolExecutor.TOOL_GENERATE_IMAGE)
+                    return MediaResult(content = content, imageUrl = capturedUrl?.replaceFirst("http://", "https://"))
+                } catch (e: Exception) {
+                    onToolComplete?.invoke(ToolExecutor.TOOL_GENERATE_IMAGE)
+                    onError(e.message ?: "Image generation failed")
+                }
+            }
+        }
+
+        // Text-to-audio intent
+        if (lowerContent.contains("text to audio") ||
+            lowerContent.contains("convert to speech") ||
+            lowerContent.contains("generate audio")) {
+            val text = extractPromptAfterKeyword(content, listOf("text to audio", "convert to speech", "generate audio"))
+            if (text.isNotEmpty()) {
+                onToolStarted?.invoke(ToolExecutor.TOOL_TEXT_TO_AUDIO)
+                try {
+                    var capturedUrl: String? = null
+                    toolExecutor.executeTextToAudio(
+                        text = text,
+                        onSuccess = { url -> capturedUrl = url },
+                        onError = { }
+                    )
+                    onToolComplete?.invoke(ToolExecutor.TOOL_TEXT_TO_AUDIO)
+                    return MediaResult(content = content, audioUrl = capturedUrl?.replaceFirst("http://", "https://"))
+                } catch (e: Exception) {
+                    onToolComplete?.invoke(ToolExecutor.TOOL_TEXT_TO_AUDIO)
+                    onError(e.message ?: "Audio generation failed")
+                }
+            }
+        }
+
+        // Music generation intent
+        if (lowerContent.contains("generate music") ||
+            lowerContent.contains("create a song") ||
+            lowerContent.contains("composing music")) {
+            val prompt = extractPromptAfterKeyword(content, listOf("generate music", "create a song", "composing music"))
+            if (prompt.isNotEmpty()) {
+                onToolStarted?.invoke(ToolExecutor.TOOL_MUSIC_GENERATION)
+                try {
+                    var capturedUrl: String? = null
+                    toolExecutor.executeMusicGeneration(
+                        prompt = prompt,
+                        onSuccess = { url -> capturedUrl = url },
+                        onError = { }
+                    )
+                    onToolComplete?.invoke(ToolExecutor.TOOL_MUSIC_GENERATION)
+                    return MediaResult(content = content, audioUrl = capturedUrl?.replaceFirst("http://", "https://"))
+                } catch (e: Exception) {
+                    onToolComplete?.invoke(ToolExecutor.TOOL_MUSIC_GENERATION)
+                    onError(e.message ?: "Music generation failed")
+                }
+            }
+        }
+
+        return MediaResult(content = content)
+    }
+
+    /**
+     * Extracts the prompt text that follows a media keyword.
+     */
+    private fun extractPromptAfterKeyword(content: String, keywords: List<String>): String {
+        val lowerContent = content.lowercase()
+        for (keyword in keywords) {
+            val idx = lowerContent.indexOf(keyword)
+            if (idx >= 0) {
+                val afterKeyword = content.substring(idx + keyword.length).trim()
+                // Remove leading punctuation and quotes
+                val cleaned = afterKeyword.removePrefix(":").removePrefix("-").removePrefix(" ").trim().removeSurrounding("\"", "\"")
+                if (cleaned.isNotEmpty() && cleaned.length > 5) {
+                    return cleaned.take(200) // Limit prompt length
+                }
+            }
+        }
+        return ""
+    }
+
     private suspend fun executeToolCall(
         function: FunctionCall,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onToolStarted: ((String) -> Unit)?,
+        onToolComplete: ((String) -> Unit)?
     ): String? {
         val name = function.name
         val args = try {
@@ -464,73 +599,131 @@ class ChatRepository(
             return null
         }
 
-        return when (name) {
+        // Notify tool started
+        onToolStarted?.invoke(name)
+
+        return@executeToolCall when (name) {
             ToolExecutor.TOOL_TEXT_TO_AUDIO -> {
                 var result: String? = null
-                toolExecutor.executeTextToAudio(
-                    text = args["text"] ?: "",
-                    voiceId = args["voice_id"],
-                    speed = args["speed"]?.toFloatOrNull() ?: 1.0f,
-                    emotion = args["emotion"],
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
-                result?.let { "[Audio generated: $it]" }
+                var errorMsg: String? = null
+                runBlocking {
+                    toolExecutor.executeTextToAudio(
+                        text = args["text"] ?: "",
+                        voiceId = args["voice_id"],
+                        speed = args["speed"]?.toFloatOrNull() ?: 1.0f,
+                        emotion = args["emotion"],
+                        onSuccess = { url ->
+                            result = "[Audio generated: ${url.replaceFirst("http://", "https://")}]"
+                        },
+                        onError = { error ->
+                            errorMsg = error
+                        }
+                    )
+                }
+                if (errorMsg != null) {
+                    onError(errorMsg!!)
+                }
+                onToolComplete?.invoke(name)
+                result
             }
-
             ToolExecutor.TOOL_UNDERSTAND_IMAGE -> {
                 var result: String? = null
-                toolExecutor.executeImageUnderstanding(
-                    imageUrl = args["image_url"] ?: "",
-                    prompt = args["prompt"] ?: "Describe this image",
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
+                var errorOccurred = false
+                runBlocking {
+                    toolExecutor.executeImageUnderstanding(
+                        imageUrl = args["image_url"] ?: "",
+                        prompt = args["prompt"] ?: "Describe this image",
+                        onSuccess = { r -> result = r },
+                        onError = { e ->
+                            errorOccurred = true
+                            onError(e)
+                        }
+                    )
+                }
+                if (!errorOccurred) {
+                    onToolComplete?.invoke(name)
+                }
                 result
             }
-
             ToolExecutor.TOOL_WEB_SEARCH -> {
                 var result: String? = null
-                toolExecutor.executeWebSearch(
-                    query = args["query"] ?: "",
-                    numResults = args["num_results"]?.toIntOrNull() ?: 5,
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
+                var errorOccurred = false
+                runBlocking {
+                    toolExecutor.executeWebSearch(
+                        query = args["query"] ?: "",
+                        numResults = args["num_results"]?.toIntOrNull() ?: 5,
+                        onSuccess = { r -> result = r },
+                        onError = { e ->
+                            errorOccurred = true
+                            onError(e)
+                        }
+                    )
+                }
+                if (!errorOccurred) {
+                    onToolComplete?.invoke(name)
+                }
                 result
             }
-
             ToolExecutor.TOOL_GENERATE_IMAGE -> {
                 var result: String? = null
-                toolExecutor.executeImageGeneration(
-                    prompt = args["prompt"] ?: "",
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
-                result?.let { "[Image generated: $it]" }
+                var errorMsg: String? = null
+                runBlocking {
+                    toolExecutor.executeImageGeneration(
+                        prompt = args["prompt"] ?: "",
+                        onSuccess = { url ->
+                            result = "[Image generated: ${url.replaceFirst("http://", "https://")}]"
+                        },
+                        onError = { error ->
+                            errorMsg = error
+                        }
+                    )
+                }
+                if (errorMsg != null) {
+                    onError(errorMsg!!)
+                }
+                onToolComplete?.invoke(name)
+                result
             }
-
             ToolExecutor.TOOL_MUSIC_GENERATION -> {
                 var result: String? = null
-                toolExecutor.executeMusicGeneration(
-                    prompt = args["prompt"] ?: "",
-                    title = args["title"],
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
-                result?.let { "[Music generated: $it]" }
+                var errorMsg: String? = null
+                runBlocking {
+                    toolExecutor.executeMusicGeneration(
+                        prompt = args["prompt"] ?: "",
+                        title = args["title"],
+                        onSuccess = { url ->
+                            result = "[Music generated: ${url.replaceFirst("http://", "https://")}]"
+                        },
+                        onError = { error ->
+                            errorMsg = error
+                        }
+                    )
+                }
+                if (errorMsg != null) {
+                    onError(errorMsg!!)
+                }
+                onToolComplete?.invoke(name)
+                result
             }
-
             ToolExecutor.TOOL_GENERATE_VIDEO -> {
                 var result: String? = null
-                toolExecutor.executeVideoGeneration(
-                    prompt = args["prompt"] ?: "",
-                    onSuccess = { result = it },
-                    onError = { onError(it) }
-                )
-                result?.let { "[Video generated: $it]" }
+                var errorMsg: String? = null
+                runBlocking {
+                    toolExecutor.executeVideoGeneration(
+                        prompt = args["prompt"] ?: "",
+                        onSuccess = { url ->
+                            result = "[Video generated: ${url.replaceFirst("http://", "https://")}]"
+                        },
+                        onError = { error ->
+                            errorMsg = error
+                        }
+                    )
+                }
+                if (errorMsg != null) {
+                    onError(errorMsg!!)
+                }
+                result
             }
-
             else -> {
                 Log.w(TAG, "Unknown tool: $name")
                 null

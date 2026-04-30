@@ -1,6 +1,35 @@
 # Aurelius — Auto-Generated Documentation
 
-> Auto-updated: 2026-04-26
+> Auto-updated: 2026-04-29
+
+## Bug Fixes Applied (2026-04-29)
+
+### 1. LazyColumn Duplicate Key Crash (ChatScreen.kt)
+- **Issue**: Second AI message caused crash: `IllegalArgumentException: Key "UUID" was already used`
+- **Root Cause**: `items(uiState.messages, key = { it.id })` used wrong lambda syntax
+- **Fix**: Changed to `items(uiState.messages, key = { message -> message.id })`
+- **Lines**: ChatScreen.kt line ~182
+
+### 2. ViewModel Race Condition (ChatViewModel.kt)
+- **Issue**: Messages list race condition when onComplete callback fired during state update
+- **Fix**: Removed messages accumulation in onComplete, changed to `onComplete = { _ ->`
+- **Lines**: ChatViewModel.kt line ~134
+
+### 3. Image Generation Missing Response Format (ToolExecutor.kt)
+- **Issue**: Image generation API returned error 2013 "invalid params"
+- **Root Cause**: Request body missing `response_format: "url"` parameter
+- **Fix**: Added `"response_format":"url"` to request body
+- **Lines**: ToolExecutor.kt line ~189
+
+### 4. Tool Definitions Stripped on Anthropic Path (ChatRepository.kt)
+- **Issue**: `executeAnthropicChatCompletion` was passing `tools = null` instead of actual `toolDefinitions`
+- **Fix**: Now receives and passes `toolDefinitions` correctly to allow function calling with sk-cp- keys
+- **Lines**: ChatRepository.kt lines ~302-399
+
+### 5. Show Thinking Tags (ChatScreen.kt)
+- **Feature**: AI reasoning (<think>/ blocks) now displays as styled footnote ABOVE responses
+- **Toggle**: Controlled by `showThinkingTags` in SecureStorage, toggleable in Settings
+- **Style**: Ghost Footnote with LetterSage color, dashed border, italic Source Sans 3
 
 ## Bug Fixes Applied (2026-04-26)
 
@@ -114,9 +143,35 @@ Research phase completed: analysis of top 50 productivity and AI chat apps. Rede
 
 ---
 
+## Current Status
+
+- **Status**: WORKING
+- **Crash Fix (2026-04-29)**: LazyColumn duplicate key + ViewModel race condition resolved
+- **Image Gen Fix (2026-04-29)**: Added response_format param, API returns valid URLs
+- **Thinking Tags (2026-04-29)**: Feature complete with Settings toggle
+- **AI chat**: WORKING with sk-cp- API key (coding plan key routes to /v1/chat/completions)
+- **Build verified**: app-debug.apk at `app/build/outputs/apk/debug/`
+- **Screenshots**: All test screenshots in `screenshots/` folder (1008 files)
+- **Model**: MiniMax-M2.7
+
 ## Known Issues
 
-- None — all known issues resolved as of 2026-04-26
+- **Video generation**: Requires Max plan ($50/mo) - Plus plan users get "limit reached"
+- **Music generation**: May take 30s due to polling requirement
+
+---
+
+## Token Plan Features (Plus Plan $20/mo)
+
+| Feature | Quota | Status |
+|---------|-------|--------|
+| M2.7 text | 4,500 req/5hrs | ✅ Working |
+| Speech 2.8 | 4,000 chars/day | ✅ Working |
+| image-01 | 50 images/day | ✅ Fixed (2026-04-29) |
+| music-01 | 100 songs/day | ✅ Working |
+| Video (Hailuo-2.3) | Max only | ⚠️ Not available on Plus |
+| Web search MCP | Unlimited | ✅ Working |
+| Image understanding (MiniMax-VL-01) | Unlimited | ✅ Working |
 
 ---
 
