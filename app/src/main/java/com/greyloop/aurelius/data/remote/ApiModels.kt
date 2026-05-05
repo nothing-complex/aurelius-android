@@ -15,7 +15,9 @@ data class ChatCompletionRequest(
 data class Message(
     val role: String,
     val content: String,
-    val name: String? = null
+    val name: String? = null,
+    @SerialName("tool_call_id")
+    val toolCallId: String? = null
 )
 
 @Serializable
@@ -94,20 +96,38 @@ data class ToolProperty(
 // Tool Response models
 @Serializable
 data class ImageGenerationResponse(
-    val id: String,
+    val id: String? = null,
     val model: String? = null,
     @SerialName("created_at")
     val createdAt: String? = null,
-    val data: List<ImageData>
+    val data: ImageGenerationData? = null,
+    val metadata: ImageMetadata? = null,
+    @SerialName("task_id")
+    val task_id: String? = null,
+    @SerialName("base_resp")
+    val baseResp: BaseResp? = null
 )
 
 @Serializable
-data class ImageData(
-    val url: String? = null,
-    @SerialName("base64_data")
-    val base64Data: String? = null,
-    @SerialName("revised_prompt")
-    val revisedPrompt: String? = null
+data class ImageMetadata(
+    @SerialName("failed_count")
+    val failed_count: String? = null,
+    @SerialName("success_count")
+    val success_count: String? = null
+)
+
+@Serializable
+data class ImageGenerationData(
+    val image_urls: List<String> = emptyList()
+)
+
+@Serializable
+data class ImageGenerationRequest(
+    val model: String,
+    val prompt: String,
+    val response_format: String = "url",
+    val aspect_ratio: String? = null,
+    val n: Int? = null
 )
 
 @Serializable
@@ -115,12 +135,14 @@ data class TextToAudioRequest(
     val model: String,
     val text: String,
     val stream: Boolean = false,
-    val voice_setting: VoiceSetting? = null
+    val voice_setting: VoiceSetting,
+    @SerialName("voice_id")
+    val voice_id: String? = null  // Top-level fallback per MiniMax API
 )
 
 @Serializable
 data class VoiceSetting(
-    val voice_id: String? = null,
+    val voice_id: String,
     val speed: Float? = null,
     val vol: Float? = null,
     val pitch: Float? = null,
@@ -129,17 +151,18 @@ data class VoiceSetting(
 
 @Serializable
 data class TextToAudioResponse(
-    val id: String,
-    val model: String,
+    val id: String? = null,
+    val model: String? = null,
     @SerialName("created_at")
-    val createdAt: String,
-    val data: AudioData
+    val createdAt: String? = null,
+    val data: AudioData? = null
 )
 
 @Serializable
 data class AudioData(
     val flow_url: String? = null,
-    val url: String? = null
+    val url: String? = null,
+    val audio: String? = null
 )
 
 @Serializable
@@ -171,8 +194,6 @@ data class SearchMessage(
 data class MusicGenerationRequest(
     val model: String,
     val prompt: String,
-    @SerialName("input_eight_seconds")
-    val inputEightSeconds: Int? = null,
     val lyrics: String? = null,
     val title: String? = null,
     @SerialName("prompt_tags")
@@ -181,10 +202,21 @@ data class MusicGenerationRequest(
 
 @Serializable
 data class MusicGenerationResponse(
-    val id: String,
-    val model: String,
-    val task_id: String,
-    val status: String
+    val id: String? = null,
+    val model: String? = null,
+    @SerialName("task_id")
+    val task_id: String? = null,
+    val status: String? = null,
+    @SerialName("base_resp")
+    val base_resp: BaseResp? = null
+)
+
+@Serializable
+data class BaseResp(
+    @SerialName("status_code")
+    val status_code: Int?,
+    @SerialName("status_msg")
+    val status_msg: String?
 )
 
 @Serializable
@@ -203,10 +235,17 @@ data class VideoGenerationResponse(
 
 @Serializable
 data class TaskStatusResponse(
-    val id: String,
-    val task_id: String,
-    val status: String,
-    val data: VideoData? = null
+    val id: String? = null,
+    @SerialName("task_id")
+    val task_id: String? = null,
+    val status: String? = null,
+    val data: TaskData? = null
+)
+
+@Serializable
+data class TaskData(
+    val url: String? = null,
+    val image_urls: List<String> = emptyList()
 )
 
 @Serializable
@@ -240,8 +279,11 @@ data class ImageUrl(
 
 @Serializable
 data class ImageUnderstandingResponse(
-    val id: String,
-    val choices: List<ImageUnderstandingChoice>
+    val id: String? = null,
+    val choices: List<ImageUnderstandingChoice>? = null,
+    val content: String? = null,
+    @SerialName("base_resp")
+    val baseResp: BaseResp? = null
 )
 
 @Serializable
