@@ -167,3 +167,39 @@ versionName = "2.0.0"
 - Keep Room entities
 - Keep OkHttp
 - Keep Kotlinx Serialization
+
+---
+
+## 8. Sprint v5 QA Report (2026-05-04)
+
+**RECOMMENDATION: NO-GO — 5 blockers require engineering fix before release**
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Test pass rate | 20/25 (80%) | >90% | FAIL |
+| Crash-free rate | 100% | >99% | PASS |
+| State preservation | 1/2 FAIL | 0 failures | FAIL |
+| Network error handling | FAIL | Graceful degradation | FAIL |
+| Category B coverage | 0% (DEFERRED) | 100% | BLOCKED |
+
+### Release Blockers
+
+| Priority | Issue | Description |
+|----------|-------|-------------|
+| CRITICAL | E-04 | ViewModel state NOT preserved across rotation — user input lost |
+| HIGH | C-02 | No input validation feedback for invalid API key |
+| HIGH | E-01 | No network error handling in airplane mode |
+| MEDIUM | A-02 | Search icon tap has no snackbar feedback |
+| MEDIUM | A-10 | FAB/delete icon overlap in landscape mode |
+
+### FAIL Details
+
+1. **A-02 (Search snackbar missing):** Search icon tap shows no UI feedback. Fix: Add Snackbar.make() on search tap.
+2. **A-10 (Landscape FAB overlap):** FAB overlaps delete icons in landscape. Fix: Adjust ConstrainedLayout for rotation.
+3. **C-02 (No API key validation):** TextField without onValueChange validation. Fix: Add validation feedback on invalid key.
+4. **E-01 (No network error handling):** Airplane mode shows no error banner/toast. Fix: Add connectivity check before loading.
+5. **E-04 (State lost on rotation):** Input text "RotationTest123" lost after rotation. Fix: SaveStateHandle for input text.
+
+### Deferred Testing
+
+**Category B (MCP Tools):** All 5 MiniMax media tools unavailable (text_to_image, text_to_audio, music_generation, generate_video, voice_clone). Testing deferred until MCP configuration is fixed.
